@@ -279,11 +279,14 @@ class Sample(BaseFolder, HistoryAwareMixin):
         ARs = self.getBackReferences("AnalysisRequestSample")
         prefix = self.getSampleType().getPrefix()
         ar_ids = [AR.id for AR in ARs if AR.id.startswith(prefix)]
-        ar_ids.sort()
-        try:
-            last_ar_number = int(ar_ids[-1].split("-")[-1])
-        except:
-            return 0
+	if len(ar_ids) > 0:
+	    ar_ids.sort()
+            try:
+            	last_ar_number = int(ar_ids[-1].split("-")[-1])
+            except:
+            	last_ar_number = 0
+	else:
+	    last_ar_number = 0
         return last_ar_number
 
 atapi.registerType(Sample, PROJECTNAME)

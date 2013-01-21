@@ -6,13 +6,75 @@
   tal:define="portal_url nocall:context/portal_url;
               portal portal_url/getPortalObject;">
 
-<head>
+<head>	
     <style type="text/css" media="all"
            tal:condition="python:exists('portal/ploneCustom.css')"
            tal:content="structure string:&lt;!-- @import url($portal_url/ploneCustom.css); --&gt;">
     </style>
     <link rel="stylesheet" type="text/css" media="all" href=""
           tal:attributes="href string:$portal_url/analysisrequest_results.css" />
+    <style>
+    	html body {
+    		font-size:12px;
+    	}
+    	table.main-table thead tr th,
+    	table.main-table tbody tr.category_heading th  {
+    		width:20%;
+    		white-space:nowrap;
+    		background-color:#EFEFEF;
+    		border:1px solid #DCDCDC;
+    		margin:0px;
+    		padding: 3px 5px 0px 5px;
+    	}
+    	table.main-table thead tr td,
+    	table.main-table tbody tr td  {
+    		width:80%;
+    	}
+    	table.results-table {
+    		font-size:0.9em;
+    	}
+    	table.results-table thead tr th,
+    	table.results-table tbody tr.category_heading th  {
+    		white-space:nowrap;
+    		background-color:#EFEFEF;
+    		border:1px solid #DCDCDC;
+    		margin:0px;
+    	}
+    	table.results-table tbody tr.category_heading th.category_title  {
+    		white-space:nowrap;
+    		width:60%;
+    	}
+    	table.results-table tbody tr th.service-title  {
+    		padding-left: 10px;
+    		background-color:#fff;
+    		border-bottom:1px solid #DCDCDC;
+    		border-left:1px solid #DCDCDC;
+    		border-right:none;    
+    		border-top:1px solid #DCDCDC;
+    	}
+    	table.results-table tbody tr td {
+    		border-bottom:1px solid #DCDCDC;
+    		border-right:1px solid #DCDCDC;
+    		border-left:none;    
+    		border-top:1px solid #DCDCDC;
+    		width:40%;		
+    	} 
+    	div.discreeter {
+    		font-size:0.9em;    
+    		border:1px solid #CDCDCD;
+    		background-color:#efefef;
+    		padding:20px;
+    		margin-top:20px;  
+    		display:block;  
+    		page-break-inside:avoid;	
+    	}
+    	div.discreeter p {
+    		margin:0px;
+    		padding:0px;
+    		border:none;
+    		padding-left:20px;
+    	}
+    </style>
 </head>
 
 <body tal:define="
@@ -24,13 +86,29 @@
   accredited python:lab_accredited and view.any_accredited;
   global invoice_exclude python:False;
   global out_of_range python:0;">
+  
+  
+  
 
 <table class="logo-table">
+<tr>
+	<td colspan="2" style='padding-top:0px;padding-bottom:0px;text-align:right' align="right">
+		<div tal:repeat="ar view/batch"
+			 tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1"
+			 style='display:block;'>
+			 <div tal:define="barcode_str ar/getRequestID">
+				 <div class='barcode'>
+				 	<div tal:content="ar/getRequestID"></div>
+				 </div>
+			</div>
+		</div>  
+	</td>
+</tr>
 <tr>
     <td>
       <img tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/logo_email.png"/>
     </td>
-    <td tal:condition="accredited"
+    <td width="30%" tal:condition="accredited"
         tal:define="logo python:context.bika_setup.laboratory.getAccreditationBodyLogo()">
       <img
           tal:condition="logo"
@@ -45,42 +123,42 @@
 <table class="address-table">
   <tr>
     <td>
-      <span tal:content="view/contact/getFullname"/>
-      <br/>
-      <span tal:content="view/client/Title"/>
-      <br/>
-      <span tal:content="structure view/client_address"/>
-    </td>
-    <td>
       <span tal:content="view/laboratory/Title"/>
       <br/>
+      Tel: <span tal:content="view/laboratory/getPhone"/>
+      <br/>
+      <a tal:attributes="href python:view.laboratory.getLabURL()"
+      	 tal:content="view/laboratory/getLabURL"/>
+      <br/>
+      <a tal:attributes="href python:'mailto:'+(view.laboratory.getEmailAddress())"
+      	 tal:content="view/laboratory/getEmailAddress"/>
+      <br/><br/>
       <span tal:content="structure view/lab_address"/>
+    </td>
+    <td width="30%">
+      <span style='font-weight:bold' tal:content="view/contact/getFullname"/>
+      <br/>
+      <span tal:content="view/contact/getDepartment"/>
+      <br/> 
+      <span tal:content="view/client/Title"/>
+      <br/>  
+        
+      Tel: <span tal:content="view/contact/getBusinessPhone"/>
+      <br/>      
+      <a tal:attributes="href python:'mailto:'+(view.contact.getEmailAddress())"
+      	 tal:content="view/contact/getEmailAddress"/>
+      <br/><br/>
+      <span tal:content="structure view/client_address"/>
+      <br/><br/>
+      <div tal:repeat="ar view/batch" style="float:left;padding-right:5px;"
+        	tal:content="python:ar.getSample().getClientSampleID()">SID</div>
+      <div style="clear:both"></div>
     </td>
   </tr>
 </table>
 
-<div>
-    <tal:reporter tal:condition="view/reporter">
-        <span i18n:translate="">Created by:</span>
-        <span tal:content="view/reporter"/>
-        <tal:email tal:condition="view/reporter_email">
-            (<a tal:define="email view/reporter_email"
-               tal:content="email"
-               tal:attributes="href string:mailto:${email}"/>)
-        </tal:email>
-        <tal:signature tal:condition="view/reporter_signature">
-            <br/>
-            <img tal:attributes="src view/reporter_signature"/>
-        </tal:signature>
-    </tal:reporter>
-</div>
-
-<hr/>
-
 <table class="main-table" cellpadding="2" cellspacing="0">
-
-  <thead>
-
+	<thead>
     <tr>
       <th i18n:translate="">Client Order</th>
       <td tal:repeat="ar view/batch"
@@ -94,63 +172,18 @@
         tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1"
         tal:content="python:ar.getSample().getClientReference()">T01</td>
     </tr>
-
-    <tr>
-      <th i18n:translate="">Client SID</th>
-      <td tal:repeat="ar view/batch"
-        tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1"
-        tal:content="python:ar.getSample().getClientSampleID()">S01</td>
-    </tr>
-
-    <tr>
-      <th i18n:translate="">Sampling Deviation</th>
-      <td tal:repeat="ar view/batch"
-        tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1"
-        tal:content="python:ar.getSample().getSamplingDeviation()">None</td>
-    </tr>
-
-    <tr>
-      <th i18n:translate="">Request ID</th>
-      <td tal:repeat="ar view/batch"
-        tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1">
-        <a href="" tal:content="ar/getRequestID"
-          tal:attributes="href ar/absolute_url">AR-00001</a>
-        <tal:exclude tal:condition="ar/getInvoiceExclude">
-          <img tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/invoice_exclude.png"
-            tal:define="global invoice_exclude python:1">
-        </tal:exclude>
-        <tal:dry tal:condition="ar/getReportDryMatter">
-          <img tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/dry.png"
-            tal:define="global dry_matter python:1">
-        </tal:dry>
-      </td>
-    </tr>
-
-    <tr>
-      <th i18n:translate="">Sample ID</th>
-      <td tal:repeat="ar view/batch"
-        tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1">
-      <a href=""
-        tal:define="sample ar/getSample"
-        tal:content="sample/getSampleID"
-        tal:attributes="href sample/absolute_url">S-00001</a>
-      </td>
-    </tr>
-
-    <tr>
-      <th i18n:translate="">Client</th>
-      <td tal:repeat="ar view/batch"
-        tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1"
-        tal:content="ar/aq_parent/Title">Lab client</td>
-    </tr>
-
+    
     <tr>
       <th i18n:translate="">Sample Type</th>
       <td tal:repeat="ar view/batch"
         tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1"
         tal:content="python:ar.getSample().getSampleType().Title()">SampleType</td>
     </tr>
+  </thead>
+</table>
 
+<table class="main-table" cellpadding="2" cellspacing="0">
+  <thead>
     <tr>
       <th i18n:translate="">Sample Point</th>
       <td tal:repeat="ar view/batch"
@@ -176,19 +209,11 @@
         tal:content="python:view.ulocalized_time(ar.getDatePublished(), long_format=1)"
         >2005-01-01 10:00</td>
     </tr>
-
-    <tr>
-      <th i18n:translate="">Verified by</th>
-      <td tal:repeat="ar view/batch"
-        tal:attributes="colspan python:ar.getReportDryMatter() and 2 or 1">
-        <span
-          tal:define="verifier python:ar.get_verifier()"
-          tal:content="verifier"/>
-      </td>
-    </tr>
-
   </thead>
-
+</table>
+<p>&nbsp;</p>
+<h1>Analyses Results</h1>
+<table class="main-table results-table" cellpadding="2" cellspacing="0">
   <tbody>
 
     <tal:arcount
@@ -201,7 +226,7 @@
 
     <tal:category tal:repeat="cat python:view.services[poc].keys()">
       <tr class="category_heading">
-        <th
+        <th class="category_title"
           tal:content="string:${poc} - ${cat}"/>
         <tal:results tal:repeat="ar view/batch">
           <tal:drymatter tal:condition="ar/getReportDryMatter">
@@ -216,7 +241,7 @@
 
     <tal:service tal:repeat="service python:view.services[poc][cat]">
       <tr>
-        <th nowrap>
+        <th style="white-space:nowrap;" class="service-title">
           <span tal:content="service/Title">Alcohol</span>
           <em tal:content="service/getUnit|nothing">ml</em>
           <img tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/dry_grey.png"
@@ -280,7 +305,8 @@
     </tal:poc>
   </tbody>
 </table>
-
+<p>&nbsp;</p>
+<h1>Additional information</h1>
 <table class="main-table">
   <tr>
       <th colspan="2" i18n:translate="">Remarks</th>
@@ -377,8 +403,6 @@
   </tal:manager>
 </div>
 
-<hr/>
-
 <div class="discreeter"
   tal:define="global seq_no python:0">
   <p tal:condition="out_of_range">
@@ -444,13 +468,27 @@
     <span i18n:translate="">
       Methods of analysis available by clicking on the 'Request' link</span>
   </p>
-
-  <p tal:condition="view/Footer" tal:content="structure view/Footer"/>
-
 </div>
 
-<hr/>
-
+<p>&nbsp;</p>
+<div>
+    <tal:reporter tal:condition="view/reporter">
+        <span i18n:translate="">Verified by:</span>
+        <span tal:content="view/reporter"/>
+        <tal:email tal:condition="view/reporter_email">
+            (<a tal:define="email view/reporter_email"
+               tal:content="email"
+               tal:attributes="href string:mailto:${email}"/>)
+        </tal:email>
+        <tal:signature tal:condition="view/reporter_signature">
+            <br/>
+            <img tal:attributes="src view/reporter_signature"/>
+        </tal:signature>
+    </tal:reporter>
+</div>
+<div>
+  <p tal:condition="view/Footer" tal:content="structure view/Footer"/>
+</div>
 </body>
 </html>
 
