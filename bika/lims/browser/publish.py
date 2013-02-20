@@ -77,18 +77,7 @@ class doPublish(BrowserView):
 
         # lab address
         self.laboratory = laboratory = self.context.bika_setup.laboratory
-        lab_address = laboratory.getPostalAddress() \
-            or laboratory.getBillingAddress() \
-            or laboratory.getPhysicalAddress()
-        if lab_address:
-            _keys = ['address', 'city', 'state', 'zip', 'country']
-            _list = [lab_address.get(v) for v in _keys if lab_address.get(v)]
-            self.lab_address = lab_address.get('address') + "<br/>" + \
-                            lab_address.get('zip') + ' ' + lab_address.get('city') + "<br/>" + \
-                            lab_address.get('state') + ', ' + lab_address.get('country')
-            #self.lab_address = "<br/>".join(_list).replace("\n", "<br/>")
-        else:
-            self.lab_address = None
+        self.lab_address = "<br/>".join(laboratory.getPrintAddress())
 
         # group/publish analysis requests by contact
         ARs_by_contact = {}
@@ -106,19 +95,7 @@ class doPublish(BrowserView):
 
             # client address
             self.client = ars[0].aq_parent
-            client_address = self.client.getPostalAddress() \
-                or self.contact.getBillingAddress() \
-                or self.contact.getPhysicalAddress()
-            client_address =self.client.getPostalAddress()
-            if client_address:
-                _keys = ['address', 'city', 'state', 'zip', 'country']
-                _list = [client_address.get(v) for v in _keys if client_address.get(v)]
-                self.client_address = client_address.get('address') + "<br/>" + \
-                            client_address.get('zip') + ' ' + client_address.get('city') + "<br/>" + \
-                            client_address.get('state') + ', ' + client_address.get('country')
-                #self.client_address = "<br/>".join(_list).replace("\n", "<br/>")
-            else:
-                self.client_address = None
+            self.client_address = "<br/>".join(self.client.getPrintAddress())
 
             self.Footer = self.context.bika_setup.getResultFooter()
 
@@ -158,7 +135,7 @@ class doPublish(BrowserView):
                     # render template
                     ar_results = self.ar_results()
                     ar_results = safe_unicode(ar_results).encode('utf-8')
-                    
+
                     debug_mode = App.config.getConfiguration().debug_mode
                     if debug_mode:
                         open(join(Globals.INSTANCE_HOME,'var', out_fn + ".html"),
@@ -173,7 +150,7 @@ class doPublish(BrowserView):
                     if debug_mode:
                         open(join(Globals.INSTANCE_HOME,'var', out_fn + ".pdf"),
                              "wb").write(pdf_data)
-                    
+
                     mime_msg = MIMEMultipart('related')
                     mime_msg['Subject'] = self.get_mail_subject()
                     mime_msg['From'] = formataddr(
@@ -191,7 +168,7 @@ class doPublish(BrowserView):
                         part.set_payload( pdf_data )
                         Encoders.encode_base64(part)
                         mime_msg.attach(part)
- 
+
                     try:
                         host = getToolByName(self.context, 'MailHost')
                         host.send(mime_msg.as_string(), immediate=True)
@@ -200,7 +177,7 @@ class doPublish(BrowserView):
                             raise SMTPServerDisconnected(msg)
                     except SMTPRecipientsRefused, msg:
                         raise WorkflowException(str(msg))
- 
+
                     if self.action == 'publish':
                         for ar in self.batch:
                             try:
