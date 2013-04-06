@@ -257,7 +257,7 @@
             analysis python:analysis_found and ar[keyword];
             result analysis/getResult|nothing;
             precision python:analysis.getService().getPrecision();
-            result python:str('%%.%sf' % precision)%float(result);
+            result python:str('%%.%sf' % precision)%float((result and result == '') and 0 or result);
             uncertainty analysis/getUncertainty|nothing">
             <tal:result
               tal:condition="analysis_found"
