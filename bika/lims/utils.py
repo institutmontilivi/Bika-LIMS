@@ -148,6 +148,11 @@ def formatDuration(context, totminutes):
 
     return '%s%s' % (hours_str, mins_str)
 
+
+def tmpID():
+    import os, binascii
+    return binascii.hexlify(os.urandom(16))
+
 # encode_header function copied from roundup's rfc2822 package.
 hqre = re.compile(r'^[A-z0-9!"#$%%&\'()*+,-./:;<=>?@\[\]^_`{|}~ ]+$')
 

@@ -18,7 +18,7 @@ from bika.lims.browser.referencesample import ReferenceSamplesView
 from bika.lims.exportimport import instruments
 from bika.lims.subscribers import skip
 from bika.lims.subscribers import doActionFor
-from bika.lims.utils import getUsers, isActive
+from bika.lims.utils import getUsers, isActive, tmpID
 from operator import itemgetter
 from plone.app.content.browser.interfaces import IFolderContentsView
 from plone.app.layout.globals.interfaces import IViewView
@@ -434,7 +434,7 @@ class ManageResultsView(BrowserView):
                     client = analysis.aq_parent.aq_parent
                 else:
                     client = analysis.aq_parent
-                attachmentid = client.invokeFactory("Attachment", id = 'tmp')
+                attachmentid = client.invokeFactory("Attachment", id = tmpID())
                 attachment = client._getOb(attachmentid)
                 attachment.edit(
                     AttachmentFile = this_file,
@@ -465,7 +465,7 @@ class ManageResultsView(BrowserView):
                         client = analysis.aq_parent.aq_parent
                     else:
                         client = analysis.aq_parent
-                    attachmentid = client.invokeFactory("Attachment", id = 'tmp')
+                    attachmentid = client.invokeFactory("Attachment", id = tmpID())
                     attachment = client._getOb(attachmentid)
                     attachment.edit(
                         AttachmentFile = this_file,

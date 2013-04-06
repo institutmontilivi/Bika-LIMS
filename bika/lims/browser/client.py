@@ -14,7 +14,7 @@ from bika.lims.browser.sample import SamplesView
 from bika.lims.interfaces import IContacts
 from bika.lims.permissions import *
 from bika.lims.subscribers import doActionFor, skip
-from bika.lims.utils import isActive
+from bika.lims.utils import isActive, tmpID
 from operator import itemgetter
 from plone.app.content.browser.interfaces import IFolderContentsView
 from plone.app.layout.globals.interfaces import IViewView
@@ -652,7 +652,7 @@ class SetSpecsToLabDefaults(BrowserView):
                  getClientUID = self.context.bika_setup.bika_analysisspecs.UID())
         ls = [s.getObject() for s in ls]
         for labspec in ls:
-            _id = self.context.invokeFactory(type_name = 'AnalysisSpec', id = 'tmp')
+            _id = self.context.invokeFactory(type_name = 'AnalysisSpec', id = tmpID())
             clientspec = self.context[_id]
             clientspec.processForm()
             clientspec.edit(

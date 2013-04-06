@@ -9,7 +9,7 @@ from bika.lims import bikaMessageFactory as _
 from bika.lims import PMF, logger
 from bika.lims.browser.bika_listing import BikaListingView
 from bika.lims.browser.bika_listing import WorkflowAction
-from bika.lims.utils import getUsers
+from bika.lims.utils import getUsers, tmpID
 from plone.app.content.browser.interfaces import IFolderContentsView
 from zope.interface import implements
 import plone
@@ -432,7 +432,7 @@ class AddWorksheetView(BrowserView):
         wf = getToolByName(self.context, "portal_workflow")
         pm = getToolByName(self.context, "portal_membership")
 
-        _id = self.context.invokeFactory(type_name = 'Worksheet', id = 'tmp')
+        _id = self.context.invokeFactory(type_name = 'Worksheet', id = tmpID())
         ws = self.context[_id]
         ws.processForm()
 

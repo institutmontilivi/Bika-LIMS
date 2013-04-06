@@ -15,6 +15,7 @@ from bika.lims.permissions import *
 from bika.lims.utils import changeWorkflowState
 from bika.lims.utils import getUsers
 from bika.lims.utils import isActive
+from bika.lims.utils import tmpID
 from plone.app.layout.globals.interfaces import IViewView
 from zope.interface import implements
 import json
@@ -208,7 +209,7 @@ class createSamplePartition(BrowserView):
     def __call__(self):
         wf = getToolByName(self.context, 'portal_workflow')
         _id = self.context.invokeFactory(type_name = 'SamplePartition',
-                                         id = 'tmp')
+                                         id = tmpID())
         part = self.context[_id]
         part.processForm()
         SamplingWorkflowEnabled = part.bika_setup.getSamplingWorkflowEnabled()

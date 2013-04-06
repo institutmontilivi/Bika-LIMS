@@ -23,6 +23,7 @@ from bika.lims.utils import getUsers
 from bika.lims.utils import isActive
 from bika.lims.utils import to_utf8 as _c
 from bika.lims.utils import to_unicode as _u
+from bika.lims.utils import tmpID
 from magnitude import mg
 from plone.app.content.browser.interfaces import IFolderContentsView
 from plone.app.layout.globals.interfaces import IViewView
@@ -72,7 +73,7 @@ class AnalysisRequestWorkflowAction(WorkflowAction):
             # add missing parts
             if nr_parts > nr_existing:
                 for i in range(nr_parts - nr_existing):
-                    _id = sample.invokeFactory('SamplePartition', id = 'tmp')
+                    _id = sample.invokeFactory('SamplePartition', id = tmpID())
                     part = sample[_id]
                     part.setDateReceived = DateTime()
                     part.processForm()
@@ -1638,7 +1639,7 @@ class ajaxAnalysisRequestSubmit():
             else:
                 # Primary AR
 
-                _id = client.invokeFactory('Sample', id = 'tmp')
+                _id = client.invokeFactory('Sample', id = tmpID())
                 sample = client[_id]
                 # Strip "Lab: " from sample point title
                 sp_str = _u(values.get('SamplePoint', '')).replace("%s: " % _("Lab"), '')
@@ -1718,7 +1719,7 @@ class ajaxAnalysisRequestSubmit():
                     parts[_i]['object'] = sample['%s%s'%(part_prefix,_i+1)]
                     parts_and_services['%s%s'%(part_prefix, _i+1)] = p['services']
                 else:
-                    _id = sample.invokeFactory('SamplePartition', id = 'tmp')
+                    _id = sample.invokeFactory('SamplePartition', id = tmpID())
                     part = sample[_id]
                     parts[_i]['object'] = part
                     # Sort available containers by capacity and select the

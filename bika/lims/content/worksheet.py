@@ -17,6 +17,7 @@ from bika.lims.interfaces import IWorksheet
 from bika.lims import bikaMessageFactory as _
 from Products.Archetypes.references import HoldingReference
 from bika.lims import logger
+from bika.lims.utils import tmpID
 
 schema = BikaSchema.copy() + Schema((
     HistoryAwareReferenceField('WorksheetTemplate',
@@ -242,7 +243,7 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
             if calc and calc.getDependentServices():
                 continue
             service = analysis.getService()
-            _id = self.invokeFactory('DuplicateAnalysis', id = 'tmp')
+            _id = self.invokeFactory('DuplicateAnalysis', id = tmpID())
             duplicate = self[_id]
             duplicate.setAnalysis(analysis)
             duplicate.processForm()
