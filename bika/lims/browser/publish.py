@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from DateTime import DateTime
 from Products.Archetypes.config import REFERENCE_CATALOG
 from Products.CMFCore.WorkflowCore import WorkflowException
@@ -135,6 +137,7 @@ class doPublish(BrowserView):
                     # render template
                     ar_results = self.ar_results()
                     ar_results = safe_unicode(ar_results).encode('utf-8')
+                    ar_results = self.escape(ar_results)
 
                     debug_mode = App.config.getConfiguration().debug_mode
                     if debug_mode:
@@ -195,6 +198,80 @@ class doPublish(BrowserView):
                     raise Exception, "XXX pub_pref %s" % self.pub_pref
 
         return [ar.RequestID for ar in self.analysis_requests]
+
+
+    def escape(self, html):
+        entities = {
+            "&THORN;": safe_unicode("Þ").encode('utf-8'),
+            "&szlig;": safe_unicode("ß").encode('utf-8'),
+            "&agrave;": safe_unicode("à").encode('utf-8'),
+            "&aacute;": safe_unicode("á").encode('utf-8'),
+            "&acirc;": safe_unicode("â").encode('utf-8'),
+            "&atilde;": safe_unicode("ã").encode('utf-8'),
+            "&auml;" : safe_unicode("ä").encode('utf-8'),
+            "&aring;": safe_unicode("å").encode('utf-8'),
+            "&aelig;": safe_unicode("æ").encode('utf-8'),
+            "&ccedil;": safe_unicode("ç").encode('utf-8'),
+            "&egrave;": safe_unicode("è").encode('utf-8'),
+            "&eacute;": safe_unicode("é").encode('utf-8'),
+            "&ecirc;": safe_unicode("ê").encode('utf-8'),
+            "&euml;" : safe_unicode("ë").encode('utf-8'),
+            "&igrave;": safe_unicode("ì").encode('utf-8'),
+            "&iacute;": safe_unicode("í").encode('utf-8'),
+            "&icirc;": safe_unicode("î").encode('utf-8'),
+            "&iuml;" : safe_unicode("ï").encode('utf-8'),
+            "&eth;"  : safe_unicode("ð").encode('utf-8'),
+            "&ntilde;": safe_unicode("ñ").encode('utf-8'),
+            "&ograve;": safe_unicode("ò").encode('utf-8'),
+            "&oacute;": safe_unicode("ó").encode('utf-8'),
+            "&ocirc;": safe_unicode("ô").encode('utf-8'),
+            "&otilde;": safe_unicode("õ").encode('utf-8'),
+            "&ouml;" : safe_unicode("ö").encode('utf-8'),
+            "&oslash;": safe_unicode("ø").encode('utf-8'),
+            "&ugrave;": safe_unicode("ù").encode('utf-8'),
+            "&uacute;": safe_unicode("ú").encode('utf-8'),
+            "&ucirc;": safe_unicode("û").encode('utf-8'),
+            "&uuml;" : safe_unicode("ü").encode('utf-8'),
+            "&yacute;": safe_unicode("ý").encode('utf-8'),
+            "&thorn;": safe_unicode("þ").encode('utf-8'),
+            "&yuml;" : safe_unicode("ÿ").encode('utf-8'),
+            "&THORN;": safe_unicode("Þ").encode('utf-8'),
+            "&szlig;": safe_unicode("ß").encode('utf-8'),
+            "&Agrave;": safe_unicode("à").encode('utf-8'),
+            "&Aacute;": safe_unicode("á").encode('utf-8'),
+            "&Acirc;": safe_unicode("â").encode('utf-8'),
+            "&Atilde;": safe_unicode("ã").encode('utf-8'),
+            "&Auml;" : safe_unicode("ä").encode('utf-8'),
+            "&Aring;": safe_unicode("å").encode('utf-8'),
+            "&Aelig;": safe_unicode("æ").encode('utf-8'),
+            "&Ccedil;": safe_unicode("ç").encode('utf-8'),
+            "&Egrave;": safe_unicode("è").encode('utf-8'),
+            "&Eacute;": safe_unicode("é").encode('utf-8'),
+            "&Ecirc;": safe_unicode("ê").encode('utf-8'),
+            "&Euml;" : safe_unicode("ë").encode('utf-8'),
+            "&Igrave;": safe_unicode("ì").encode('utf-8'),
+            "&Iacute;": safe_unicode("í").encode('utf-8'),
+            "&Icirc;": safe_unicode("î").encode('utf-8'),
+            "&Iuml;" : safe_unicode("ï").encode('utf-8'),
+            "&ETH;"  : safe_unicode("ð").encode('utf-8'),
+            "&Ntilde;": safe_unicode("ñ").encode('utf-8'),
+            "&Ograve;": safe_unicode("ò").encode('utf-8'),
+            "&Oacute;": safe_unicode("ó").encode('utf-8'),
+            "&Ocirc;": safe_unicode("ô").encode('utf-8'),
+            "&Otilde;": safe_unicode("õ").encode('utf-8'),
+            "&Ouml;" : safe_unicode("ö").encode('utf-8'),
+            "&Oslash;": safe_unicode("ø").encode('utf-8'),
+            "&Ugrave;": safe_unicode("ù").encode('utf-8'),
+            "&Uacute;": safe_unicode("ú").encode('utf-8'),
+            "&Ucirc;": safe_unicode("û").encode('utf-8'),
+            "&Uuml;" : safe_unicode("ü").encode('utf-8'),
+            "&Yacute;": safe_unicode("ý").encode('utf-8'),
+            "&Yhorn;": safe_unicode("þ").encode('utf-8'),
+            "&Yuml;" : safe_unicode("ÿ").encode('utf-8')
+        }
+        for key, val in entities.items():
+            html=html.replace(val,key)
+        return html
 
     def get_managers_from_requests(self):
         ## Script (Python) "get_managers_from_requests"
