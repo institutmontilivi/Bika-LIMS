@@ -43,6 +43,12 @@ schema = BikaSchema.copy() + Schema((
             description = _("Remarks to take into account before validation"),
         ),
     ),
+    
+    FileField('Document',
+        widget = FileWidget(
+            label = _("Validation document"),
+        )
+    ),
                                      
     TextField('WorkPerformed',
         default_content_type = 'text/x-web-intelligent',

@@ -74,6 +74,15 @@ schema = BikaFolderSchema.copy() + BikaSchema.copy() + Schema((
             description = _("Instructions for in-lab regular calibration routines intended for analysts"),
         ),
     ),
+        
+    FileField('InlabCalibrationProcedureFile',
+        schemata = 'Procedures',
+        widget = FileWidget(
+            label = _("In-lab calibration procedure document"),
+            description = _("Document describing the in-lab calibration procedures"),
+        )
+    ),
+                                                               
     TextField('PreventiveMaintenanceProcedure',
         schemata = 'Procedures',
         default_content_type = 'text/x-web-intelligent',
@@ -84,6 +93,14 @@ schema = BikaFolderSchema.copy() + BikaSchema.copy() + Schema((
             description = _("Instructions for regular preventive and maintenance routines intended for analysts"),
         ),
     ),   
+    
+    FileField('PreventiveMaintenanceProcedureFile',
+        schemata = 'Procedures',
+        widget = FileWidget(
+            label = _("Preventive maintenance procedure document"),
+            description = _("Document describing the preventive maintenance procedures"),
+        )
+    ),
                                                                
     StringField('DataInterface',
         vocabulary = "getDataInterfacesList",

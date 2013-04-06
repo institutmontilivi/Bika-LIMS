@@ -55,6 +55,12 @@ schema = BikaSchema.copy() + Schema((
             description = _("Date until the certification is valid"),
         ),
     ),
+
+    FileField('CertificationDocument',
+        widget = FileWidget(
+            label = _("Certification document"),
+        )
+    ),
                                      
     TextField('Remarks',
         default_content_type = 'text/x-web-intelligent',

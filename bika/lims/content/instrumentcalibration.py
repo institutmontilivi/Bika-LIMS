@@ -69,6 +69,12 @@ schema = BikaSchema.copy() + Schema((
         ),
     ),
                                      
+    FileField('CalibrationDocument',
+        widget = FileWidget(
+            label = _("Calibration document"),
+        )
+    ),
+                                     
     TextField('Remarks',
         default_content_type = 'text/x-web-intelligent',
         allowable_content_types = ('text/x-web-intelligent',),
