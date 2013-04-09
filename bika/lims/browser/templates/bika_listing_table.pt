@@ -375,10 +375,10 @@ Table cells for each column from in review_state's column list.
 								st_uid string:${item/st_uid|nothing};
 								field python:ikey;
 								value python:item[ikey]['value'];"/>	
-						<em tal:condition="python:'Unit' in item"
+						<em tal:condition="python:'unit' in item[ikey]"
 								class="discreet"
 								style="white-space:nowrap;"
-								tal:content="python:item['Unit']"/>
+								tal:content="python:item[ikey]['unit']"/>
 	
 						<span class="after"	tal:content="structure after"/>
 						</td>
