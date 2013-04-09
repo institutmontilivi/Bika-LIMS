@@ -386,7 +386,8 @@ class AnalysesView(BikaListingView):
                 self.columns[col_id] = {'title': self.interim_columns[col_id],
                                         'input_width': '6',
                                         'input_class': 'ajax_calculate numeric',
-                                        'sortable': False}
+                                        'sortable': False,
+                                        'stacked': True}
 
         if can_edit_analyses:
             new_states = []

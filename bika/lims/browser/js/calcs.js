@@ -15,7 +15,7 @@ $(document).ready(function(){
 		// clear out the alerts for this field
 		$(".alert").filter("span[uid='"+$(this).attr("uid")+"']").empty();
 
-		if ($(this).parents('td').last().hasClass('interim')){
+		if ($(this).parents('td').hasClass('interim')){
 			// add value to form's item_data
 			item_data = $.parseJSON(item_data);
 			for(i = 0; i < item_data[uid].length;i++){

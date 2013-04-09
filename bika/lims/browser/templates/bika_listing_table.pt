@@ -163,8 +163,9 @@ Colum Headers
 		</th>
 		<tal:col repeat="column column_list">
 			<th
-				tal:condition="python: 'toggle' not in view.bika_listing.columns[column]
-				                       or view.bika_listing.columns[column].get('toggle', True)"
+				tal:condition="python: ('toggle' not in view.bika_listing.columns[column]
+				                       or view.bika_listing.columns[column].get('toggle', True))
+				                       and (not hasattr(view.bika_listing, 'interim_columns') or column not in view.bika_listing.interim_columns)"
 				tal:define="
 					klass python:view.bika_listing.columns[column].get('sortable', True) and 'sortable column' or 'column';
 					klass python:'%s%s'%(klass, request.get(form_id+'_sort_on', '') == column and ' sort_on' or '');
@@ -284,8 +285,9 @@ Table cells for each column from in review_state's column list.
 	<tal:cell
 		tal:repeat="column review_state/columns">
 	<tal:rowcolspan
-		tal:condition="python: 'toggle' not in view.bika_listing.columns[column]
-		                       or view.bika_listing.columns[column].get('toggle', True)"
+		tal:condition="python: ('toggle' not in view.bika_listing.columns[column]
+		                       or view.bika_listing.columns[column].get('toggle', True))
+		                       and (not hasattr(view.bika_listing, 'interim_columns') or column not in view.bika_listing.interim_columns)"
 		tal:define="
 			dummy python: 'rowspan' in item and column in item['rowspan'] and rowspan_max.update({column: item['rowspan'][column]});
 			dummy python: column in rowspan_max or rowspan_max.update({column: 1});
@@ -323,7 +325,70 @@ Table cells for each column from in review_state's column list.
 			class python:' '.join((table_row_class, klass, item['state_class'], column));
 			rowspan python:rowspan[column];
 			colspan python:colspan;">
-
+			
+		
+		<tal:colitems condition="python:column=='Result' 
+										and hasattr(view.bika_listing, 'interim_columns') 
+										and view.bika_listing.interim_columns
+										and len([it for it in view.bika_listing.interim_columns if 'value' in item[it]])>0">
+			<table style="border:none">
+				<tal:interim repeat="ikey python:view.bika_listing.interim_columns">
+					 <tr tal:condition="python:type(item[ikey]) == type({})"
+					 	  tal:define="icol python:view.bika_listing.columns[ikey];
+					 	              ifield_type python:icol.get('type', 'string');
+					 	  			  ifield_type python:'choices' in icol and 'choices' or ifield_type;
+					 	  			  iinput_class python:icol.get('input_class','numeric');
+					 	  			  iinput_width python:icol.get('input_width', '5');
+					 	  			  iklass python:icol.get('class', '');"
+					 	  style="border:none">
+					 	<td style="border:none;">
+						<span tal:content="python:icol['title']"/>:
+						</td>
+						<td style="border:none;" tal:attributes="class python:' '.join(('interim', iklass, item['state_class'], ikey))">
+						<span class="before" tal:content="structure before"/>				
+						<tal:before tal:replace="structure replace"/>
+									
+						<input
+							type="text" style="font-size: 100%"
+							autocomplete="off"
+							tal:condition="python:allow_edit"
+							tal:attributes="
+								class python:'listing_string_entry %s' % iinput_class;
+								tabindex tabindex/next;
+								size iinput_width;
+								uid string:${item/uid};
+								st_uid string:${item/st_uid};
+								objectId string:${item/id};
+								field python:ikey;
+								value python:item[ikey]['value'];"/>
+						<span
+							tal:condition="python:not allow_edit"
+							tal:content="python:item[ikey]['value']"
+							tal:attributes="class item/state_class"/>
+							
+						<input
+							type="hidden"
+							tal:condition="python:not allow_edit"
+							tal:attributes="
+								size input_width;
+								uid string:${item/uid};
+								st_uid string:${item/st_uid|nothing};
+								field python:ikey;
+								value python:item[ikey]['value'];"/>	
+						<em tal:condition="python:'Unit' in item"
+								class="discreet"
+								style="white-space:nowrap;"
+								tal:content="python:item['Unit']"/>
+	
+						<span class="after"	tal:content="structure after"/>
+						</td>
+					</tr>
+				</tal:interim>
+			</table>
+		</tal:colitems>
+			
+			
+	<tal:colbaseitem condition="python:not hasattr(view.bika_listing, 'interim_columns') or column not in view.bika_listing.interim_columns">
 	<tal:comment replace="nothing"><!-- before structure --></tal:comment>
 	<span class="before"
 		tal:content="structure before"/>
@@ -415,6 +480,11 @@ Table cells for each column from in review_state's column list.
 		<span tal:omit-tag="python:True"
 			tal:condition="python:column == 'Result' and
 								item['calculation']">
+			<span tal:condition="python:hasattr(view.bika_listing, 'interim_columns')
+								and view.bika_listing.interim_columns
+								and len([it for it in view.bika_listing.interim_columns if 'value' in item[it]])>0"
+				i18n:translate=""
+				style="padding-left:2px;">Result: </span>
 			<span
 				tal:attributes="
 					field string:formatted_result;
@@ -543,6 +613,7 @@ Table cells for each column from in review_state's column list.
 	<span class="after"
 		tal:content="structure after"/>
 
+	</tal:colbaseitem>
 	</td>
 	</tal:rowcolspan>
 	</tal:cell>
