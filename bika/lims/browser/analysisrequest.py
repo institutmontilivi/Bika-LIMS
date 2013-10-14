@@ -1725,7 +1725,6 @@ class ajaxAnalysisRequestSubmit():
                     # Sort available containers by capacity and select the
                     # smallest one possible.
                     containers = [_p.getObject() for _p in bsc(UID=p['container'])]
-                    import pdb;pdb.set_trace()
                     if containers:
                         try:
                             containers.sort(lambda a,b:cmp(
