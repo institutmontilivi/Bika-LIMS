@@ -404,6 +404,14 @@ class BikaListingView(BrowserView):
                 ##logger.info("Or: %s=%s"%(index, value))
                 if idx.meta_type in('ZCTextIndex', 'FieldIndex'):
                     self.Or.append(MatchRegexp(index, value))
+                    # https://github.com/institutmontilivi/Bika-LIMS/issues/24
+                    vals = value.split('-')
+                    if len(vals) > 2:
+                        valroot = vals[0]
+                        for i in range(1, len(vals)):
+                            valroot = '%s-%s' % (valroot, vals[i])
+                            self.Or.append(MatchRegexp(index, valroot+'-*'))
+
                 elif idx.meta_type == 'DateIndex':
                     if value.find(":") > -1:
                         try:
