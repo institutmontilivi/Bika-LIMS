@@ -1725,15 +1725,20 @@ class ajaxAnalysisRequestSubmit():
                     # Sort available containers by capacity and select the
                     # smallest one possible.
                     containers = [_p.getObject() for _p in bsc(UID=p['container'])]
+                    import pdb;pdb.set_trace()
                     if containers:
-                        containers.sort(lambda a,b:cmp(
-                            a.getCapacity() \
-                            and mg(float(a.getCapacity().lower().split(" ", 1)[0]), a.getCapacity().lower().split(" ", 1)[1]) \
-                            or mg(0, 'ml'),
-                            b.getCapacity() \
-                            and mg(float(b.getCapacity().lower().split(" ", 1)[0]), b.getCapacity().lower().split(" ", 1)[1]) \
-                            or mg(0, 'ml')
-                        ))
+                        try:
+                            containers.sort(lambda a,b:cmp(
+                                a.getCapacity() \
+                                and mg(float(a.getCapacity().lower().split(" ", 1)[0]), a.getCapacity().lower().split(" ", 1)[1]) \
+                                or mg(0, 'ml'),
+                                b.getCapacity() \
+                                and mg(float(b.getCapacity().lower().split(" ", 1)[0]), b.getCapacity().lower().split(" ", 1)[1]) \
+                                or mg(0, 'ml')
+                            ))
+                        except:
+                            # https://github.com/institutmontilivi/Bika-LIMS/issues/26
+                            pass
                         container = containers[0]
                     else:
                         container = None
