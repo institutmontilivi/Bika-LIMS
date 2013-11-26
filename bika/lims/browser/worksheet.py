@@ -18,7 +18,7 @@ from bika.lims.browser.referencesample import ReferenceSamplesView
 from bika.lims.exportimport import instruments
 from bika.lims.subscribers import skip
 from bika.lims.subscribers import doActionFor
-from bika.lims.utils import getUsers, isActive, tmpID
+from bika.lims.utils import getUsers, isActive, tmpID, to_unicode
 from operator import itemgetter
 from plone.app.content.browser.interfaces import IFolderContentsView
 from plone.app.layout.globals.interfaces import IViewView
@@ -997,7 +997,7 @@ class ajaxGetWorksheetReferences(ReferenceSamplesView):
 
                 after_icons = "<a href='%s' target='_blank'><img src='++resource++bika.lims.images/referencesample.png' title='%s: %s'></a>" % \
                     (obj.absolute_url(), \
-                     self.context.translate(_("Reference sample")), obj.Title())
+                     self.context.translate(_("Reference sample")), to_unicode(obj.Title()))
                 items[x]['before']['ID'] = after_icons
 
                 new_items.append(items[x])
