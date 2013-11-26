@@ -12,6 +12,7 @@ import transaction
 import random
 import json
 import unittest
+from bika.lims.utils import tmpID
 
 
 class Tests(BikaIntegrationTestCase):
@@ -23,19 +24,19 @@ class Tests(BikaIntegrationTestCase):
         self.client = self.portal.clients.objectValues()[0]
         self.services = self.portal.bika_setup.bika_analysisservices
         self.calcs = self.portal.bika_setup.bika_calculations
-        sid = self.services.invokeFactory('AnalysisService', 'tmp')
+        sid = self.services.invokeFactory('AnalysisService', tmpID())
         s1 = self.services[sid]
         s1.edit(title = 's1', Keyword = 'k1')
         s1.processForm()
-        sid = self.services.invokeFactory('AnalysisService', 'tmp')
+        sid = self.services.invokeFactory('AnalysisService', tmpID())
         s2 = self.services[sid]
         s2.edit(title = 's2', Keyword = 'k2')
         s2.processForm()
-        sid = self.services.invokeFactory('AnalysisService', 'tmp')
+        sid = self.services.invokeFactory('AnalysisService', tmpID())
         s3 = self.services[sid]
         s3.edit(title = 's3', Keyword = 'k3')
         s3.processForm()
-        cid = self.calcs.invokeFactory('Calculation', 'tmp')
+        cid = self.calcs.invokeFactory('Calculation', tmpID())
         c1 = self.calcs[cid]
         c1.edit(title = 'c1')
         c1.processForm()
@@ -44,7 +45,7 @@ class Tests(BikaIntegrationTestCase):
         sampletypes = [p.getObject() for p in self.bsc(portal_type="SampleType")]
         samplepoints = [p.getObject() for p in self.bsc(portal_type="SamplePoint")]
         contacts = [c for c in self.client.objectValues() if c.portal_type == 'Contact']
-        sample_id = self.client.invokeFactory(type_name='Sample', id='tmp')
+        sample_id = self.client.invokeFactory(type_name='Sample', id=tmpID())
         sample = self.client[sample_id]
         sample.edit(
             SampleID=sample_id,
@@ -55,7 +56,7 @@ class Tests(BikaIntegrationTestCase):
             SamplingDate=DateTime()
         )
         sample.processForm()
-        ar_id = self.client.invokeFactory("AnalysisRequest", id='tmp')
+        ar_id = self.client.invokeFactory("AnalysisRequest", id=tmpID())
         ar = self.client[ar_id]
         ar.edit(
             RequestID=ar_id,

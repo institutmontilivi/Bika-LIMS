@@ -6,6 +6,7 @@ from bika.lims.tests.base import BikaIntegrationTestCase
 from plone.app.testing import *
 import transaction
 import unittest,random
+from bika.lims.utils import tmpID
 
 class Tests(BikaIntegrationTestCase):
 
@@ -35,7 +36,7 @@ class Tests(BikaIntegrationTestCase):
             profile_services = profile.getService()
 
             _ars = []
-            sample_id = client.invokeFactory(type_name = 'Sample', id = 'tmp')
+            sample_id = client.invokeFactory(type_name = 'Sample', id = tmpID())
             sample = client[sample_id]
             sample.edit(
                 SampleID = sample_id,
@@ -47,7 +48,7 @@ class Tests(BikaIntegrationTestCase):
             )
             sample.processForm()
             self.assertEqual(len(sample.getId().split("-")), 2)
-            ar_id = client.invokeFactory("AnalysisRequest", id = 'tmp')
+            ar_id = client.invokeFactory("AnalysisRequest", id = tmpID())
             ar = client[ar_id]
             _ars.append(ar)
             ar.edit(
