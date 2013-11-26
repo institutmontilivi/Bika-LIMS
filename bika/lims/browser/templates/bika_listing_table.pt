@@ -203,7 +203,7 @@ Table data rows start here
 	<tal:items
 		tal:repeat="item view/batch">
 		<tr tal:condition="python:item.has_key('id') and item.get('category', 'None') == cat"
-			tal:define="keyword python:item.has_key('Keyword') and item['Keyword'] or '';
+			tal:define="keyword python:item.get('keyword', '');
 						tmpstyle python:(cat != 'None' and not cat in selected_cats) and 'display:none;;' or '';
 						tmpstyle python:view.context.bika_setup.getEnableAnalysisRemarks() and tmpstyle + 'border-bottom:0 !important;;' or tmpstyle;"
 			tal:attributes="
@@ -437,8 +437,8 @@ Table cells for each column from in review_state's column list.
 		</span>
 		<tal:comment replace="nothing"><!-- regular field --></tal:comment>
 		<span tal:omit-tag="python:True"
-			tal:condition="python:type(item[column]) != type({}) and
-							not (column == 'Result' and item['calculation'])">
+			tal:condition="python:column in item and type(item[column]) != type({}) and
+							not (column == 'Result' and 'calculation' in item and item['calculation'])">
 			<tal:comment replace="nothing"><!-- edit --></tal:comment>
 			<input
 				type="text" style="font-size: 100%"
@@ -453,8 +453,7 @@ Table cells for each column from in review_state's column list.
 					objectId string:${item/id};
 					field python:column;
 					name python:column == view.bika_listing.select_checkbox_name and '%s_column_value.%s:records'%(column, item['uid']) or '%s.%s:records'%(column, item['uid']);
-					value python:item[column] and
-									item[column] or '';"/>
+					value python:item.get(column, '');"/>
 			<tal:comment replace="nothing"><!-- view --></tal:comment>
 			<span
 				tal:condition="python:not allow_edit and column == 'Result'"
