@@ -13,7 +13,7 @@ from zope.interface import implements
 schema = BikaSchema.copy() + Schema((
     TextField('Instructions',
         default_content_type = 'text/plain',
-        allowed_content_types= ('text/plain', ),
+        allowable_content_types= ('text/plain', ),
         default_output_type="text/plain",
         widget = TextAreaWidget(
             label = _("Method Instructions",
