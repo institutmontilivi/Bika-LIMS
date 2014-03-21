@@ -212,7 +212,8 @@ Table data rows start here
 				class item/table_row_class;
 				id string:folder-contents-item-${item/uid};
 				uid item/uid;
-				keyword keyword;">
+				keyword keyword;
+                puid python:item['obj'].aq_parent.UID() if 'obj' in item and item['obj'] and item['obj'].aq_parent else '';">
 
 		<tal:comment replace="nothing">***************
 		Individual items' row_data is stored on each row.

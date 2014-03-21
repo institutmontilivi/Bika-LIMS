@@ -2,6 +2,13 @@
 
 $(document).ready(function(){
 
+    $("input[field='Result']:not(.ajax_calculate), select[field='Result']:not(.ajax_calculate)").live('change', function() {
+        if ($(this).closest('tr[puid]').length > 0) {
+            var puid = $(this).closest('tr[puid]').attr('puid');
+            $('tr[puid="'+puid+'"] .ajax_calculate').last().change();
+        }
+    });
+
 	$(".ajax_calculate").live('change', function(){
 		form_id = $(this).parents("form").attr("id");
 		td = $(this).parents('td');
