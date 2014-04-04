@@ -118,18 +118,7 @@ def ObjectRemovedEventHandler(instance, event):
 
     return
 
-def AfterTransitionEventHandler(instance, event):
-
-    # DuplicateAnalysis doesn't have analysis_workflow.
-    if instance.portal_type == "DuplicateAnalysis":
-        return
-
-    # creation doesn't have a 'transition'
-    if not event.transition:
-        return
-
-    action_id = event.transition.id
-
+def AfterTransition(instance, action_id):
     if skip(instance, action_id):
         return
 
@@ -214,34 +203,6 @@ def AfterTransitionEventHandler(instance, event):
 
     elif action_id == "submit":
         instance.reindexObject(idxs = ["review_state", ])
-        # Dependencies are submitted already, ignore them.
-        #-------------------------------------------------
-        # Submit our dependents
-        # Need to check for result and status of dependencies first
-        dependents = instance.getDependents()
-        for dependent in dependents:
-            if not skip(dependent, action_id, peek=True):
-                can_submit = True
-                if not dependent.getResult():
-                    can_submit = False
-                else:
-                    interim_fields = False
-                    service = dependent.getService()
-                    calculation = service.getCalculation()
-                    if calculation:
-                        interim_fields = calculation.getInterimFields()
-                    if interim_fields:
-                        can_submit = False
-                if can_submit:
-                    dependencies = dependent.getDependencies()
-                    for dependency in dependencies:
-                        if wf.getInfoFor(dependency, 'review_state') in \
-                           ('to_be_sampled', 'to_be_preserved',
-                            'sample_due', 'sample_received',):
-                            can_submit = False
-                if can_submit:
-                    wf.doActionFor(dependent, 'submit')
-
         # If all analyses in this AR have been submitted
         # escalate the action to the parent AR
         if not skip(ar, action_id, peek=True):
@@ -332,40 +293,40 @@ def AfterTransitionEventHandler(instance, event):
         #---------------------------------------------------------------------
         # Check for dependents, ensure all their dependencies
         # have been verified, and submit/verify them
-        for dependent in instance.getDependents():
-            if not skip(dependent, action_id, peek=True):
-                if dependent.getResult():
-                    review_state = wf.getInfoFor(dependent, 'review_state')
-                    interim_fields = False
-                    service = dependent.getService()
-                    calculation = service.getCalculation()
-                    if calculation:
-                        interim_fields = calculation.getInterimFields()
-                    dependencies = dependent.getDependencies()
-                    if interim_fields:
-                        if review_state == 'sample_received':
-                            can_submit = True
-                            for dependency in dependencies:
-                                if wf.getInfoFor(dependency, 'review_state') in \
-                                    ('to_be_sampled', 'to_be_preserved',
-                                     'sample_due', 'sample_received',
-                                     'attachment_due', 'to_be_verified'):
-                                    can_submit = False
-                                    break
-                            if can_submit:
-                                wf.doActionFor(dependent, 'submit')
-                    else:
-                        if review_state == 'to_be_verified':
-                            can_verify = True
-                            for dependency in dependencies:
-                                if wf.getInfoFor(dependency, 'review_state') in \
-                                    ('to_be_sampled', 'to_be_preserved',
-                                     'sample_due', 'sample_received',
-                                     'attachment_due', 'to_be_verified'):
-                                    can_verify = False
-                                    break
-                            if can_verify:
-                                wf.doActionFor(dependent, 'verify')
+        #for dependent in instance.getDependents():
+        #    if not skip(dependent, action_id, peek=True):
+        #        if dependent.getResult():
+        #            review_state = wf.getInfoFor(dependent, 'review_state')
+        #            interim_fields = False
+        #            service = dependent.getService()
+        #            calculation = service.getCalculation()
+        #            if calculation:
+        #                interim_fields = calculation.getInterimFields()
+        #            dependencies = dependent.getDependencies()
+        #            if interim_fields:
+        #                if review_state == 'sample_received':
+        #                    can_submit = True
+        #                    for dependency in dependencies:
+        #                        if wf.getInfoFor(dependency, 'review_state') in \
+        #                            ('to_be_sampled', 'to_be_preserved',
+        #                             'sample_due', 'sample_received',
+        #                             'attachment_due', 'to_be_verified'):
+        #                            can_submit = False
+        #                            break
+        #                    if can_submit:
+        #                        wf.doActionFor(dependent, 'submit')
+        #            else:
+        #                if review_state == 'to_be_verified':
+        #                    can_verify = True
+        #                    for dependency in dependencies:
+        #                        if wf.getInfoFor(dependency, 'review_state') in \
+        #                            ('to_be_sampled', 'to_be_preserved',
+        #                             'sample_due', 'sample_received',
+        #                             'attachment_due', 'to_be_verified'):
+        #                            can_verify = False
+        #                            break
+        #                    if can_verify:
+        #                        wf.doActionFor(dependent, 'verify')
 
         # If all analyses in this AR are verified
         # escalate the action to the parent AR
@@ -380,7 +341,10 @@ def AfterTransitionEventHandler(instance, event):
             if all_verified:
                 if not "verify all analyses" in instance.REQUEST['workflow_skiplist']:
                     instance.REQUEST["workflow_skiplist"].append("verify all analyses")
-                wf.doActionFor(ar, "verify")
+                try:
+                    wf.doActionFor(ar, "verify")
+                except:
+                    pass
 
         # If this is on a worksheet and all it's other analyses are verified,
         # then verify the worksheet.
@@ -402,7 +366,10 @@ def AfterTransitionEventHandler(instance, event):
                 if all_verified:
                     if not "verify all analyses" in instance.REQUEST['workflow_skiplist']:
                         instance.REQUEST["workflow_skiplist"].append("verify all analyses")
-                    wf.doActionFor(ws, "verify")
+                    try:
+                        wf.doActionFor(ws, "verify")
+                    except:
+                        pass
 
     elif action_id == "publish":
         endtime = DateTime()
@@ -524,3 +491,18 @@ def AfterTransitionEventHandler(instance, event):
                 skip(ws, 'retract', unskip=True)
 
     return
+
+def AfterTransitionEventHandler(instance, event):
+
+    # DuplicateAnalysis doesn't have analysis_workflow.
+    if instance.portal_type == "DuplicateAnalysis":
+        return
+
+    # creation doesn't have a 'transition'
+    if not event.transition:
+        return
+
+    action_id = event.transition.id
+    AfterTransition(instance, action_id)
+
+

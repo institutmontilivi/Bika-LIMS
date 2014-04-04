@@ -369,6 +369,9 @@ class AnalysesView(BikaListingView):
                          _("Assigned to: ${worksheet_id}",
                            mapping={'worksheet_id':ws.id})))
 
+            # Si es tracta d'un resultat amb calcul, per ordenar-lo després
+            items[i]['last'] = 1 if calculation and calculation.getDependentServices() else 0
+
         # the TAL requires values for all interim fields on all
         # items, so we set blank values in unused cells
         for item in items:
@@ -437,6 +440,12 @@ class AnalysesView(BikaListingView):
                 state['columns'].insert(pos, 'ResultDM')
                 new_states.append(state)
             self.review_states = new_states
+
+        # Ordena els items de manera que si el resultat d'un anàlisi
+        # depèn del resultats d'altres anàlisis, apareguin els resultats
+        # ordenats, de manera que el resultat final aparegui després de
+        # la resta d'anàlisis
+        items = sorted(items, key=lambda item:item['last'])
 
         self.json_specs = json.dumps(self.specs)
         self.json_interim_fields = json.dumps(self.interim_fields)

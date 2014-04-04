@@ -226,7 +226,8 @@ class Analysis(BaseContent):
             if not calculation:
                 continue
             depservices = calculation.getDependentServices()
-            if self.getService() in depservices:
+            depservices = [d.UID() for d in depservices]
+            if self.getService().UID() in depservices:
                 dependents.append(sibling)
         return dependents
 

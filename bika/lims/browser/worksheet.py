@@ -24,6 +24,8 @@ from plone.app.content.browser.interfaces import IFolderContentsView
 from plone.app.layout.globals.interfaces import IViewView
 from zope.component import getMultiAdapter
 from zope.interface import implements
+from bika.lims.subscribers.analysis import AfterTransition
+import transaction
 import plone, json
 
 class WorksheetWorkflowAction(WorkflowAction):
@@ -85,44 +87,42 @@ class WorksheetWorkflowAction(WorkflowAction):
                                form['retested'].has_key(uid),
                     Unit = unit and unit or '')
 
-            # discover which items may be submitted
-            submissable = []
-            for uid, analysis in selected_analyses.items():
-                if uid not in results:
-                    continue
-                can_submit = True
-                if hasattr(analysis, 'getDependencies'):
-                    dependencies = analysis.getDependencies()
-                    for dependency in dependencies:
-                        dep_state = workflow.getInfoFor(dependency, 'review_state')
-                        if hasInterims[uid]:
-                            if dep_state in ('to_be_sampled', 'to_be_preserved',
-                                             'sample_due', 'sample_received',
-                                             'attachment_due', 'to_be_verified',):
-                                can_submit = False
-                                break
-                        else:
-                            if dep_state in ('to_be_sampled', 'to_be_preserved',
-                                             'sample_due', 'sample_received',):
-                                can_submit = False
-                                break
-                    for dependency in dependencies:
-                        if workflow.getInfoFor(dependency, 'review_state') in \
-                           ('to_be_sampled', 'to_be_preserved',
-                            'sample_due', 'sample_received'):
-                            can_submit = False
-                if can_submit:
-                    submissable.append(analysis)
+            tosubmit = [an for an in selected_analyses.itervalues() \
+                        if an.UID() in results]
 
-            # and then submit them.
-            for analysis in submissable:
-                doActionFor(analysis, 'submit')
+            for analysis in tosubmit:
+                if not hasattr(analysis, 'getDependencies') \
+                    or not analysis.getDependencies():
+                    doActionFor(analysis, 'submit')
+
+            lastsubmitted = None
+            for analysis in tosubmit:
+                if hasattr(analysis, 'getDependencies') \
+                    and analysis.getDependencies():
+
+                    # workaround instead of doActionFor(analysis, 'submit')
+                    wf = getToolByName(analysis, 'portal_workflow')
+                    wf_def = wf.getWorkflowsFor(analysis)
+                    wf_state = {'action':'attach',
+                                'time':DateTime(),
+                                'comments':'',
+                                'review_state':'to_be_verified',
+                                'actor':None}
+                    wf.setStatusOf("bika_analysis_workflow", analysis, wf_state)
+                    wf_def[0].updateRoleMappingsFor(analysis)
+                    analysis.reindexObject(idxs=['allowedRolesAndUsers', 'review_state'])
+                    lastsubmitted = analysis
+
+            # Needs the worksheet and AR to be transitioned?
+            if lastsubmitted:
+                AfterTransition(lastsubmitted, 'attach')
 
             message = PMF("Changes saved.")
             self.context.plone_utils.addPortalMessage(message, 'info')
             self.destination_url = self.request.get_header("referer",
                                    self.context.absolute_url())
             self.request.response.redirect(self.destination_url)
+
         ## assign
         elif action == 'assign':
             if not(getSecurityManager().checkPermission(EditWorksheet, self.context)):
@@ -170,10 +170,38 @@ class WorksheetWorkflowAction(WorkflowAction):
             # default bika_listing.py/WorkflowAction, but then go to view screen.
             self.destination_url = self.context.absolute_url()
             WorkflowAction.__call__(self)
+
+            # Hack hack.... transitions are not working with dependent analyses
+            # Same as already done in submit transition
+            selected_analyses = WorkflowAction._get_selected_items(self)
+            tosubmit = [an for an in selected_analyses.itervalues() \
+                        if hasattr(an, 'getDependencies') \
+                        and an.getDependencies()]
+            lastsubmitted = None
+            for analysis in tosubmit:
+                if hasattr(analysis, 'getDependencies') \
+                    and analysis.getDependencies():
+
+                    # workaround instead of doActionFor(analysis, 'submit')
+                    wf = getToolByName(analysis, 'portal_workflow')
+                    wf_def = wf.getWorkflowsFor(analysis)
+                    wf_state = {'action':'verify',
+                                'time':DateTime(),
+                                'comments':'',
+                                'review_state':'verified',
+                                'actor':None}
+                    wf.setStatusOf("bika_analysis_workflow", analysis, wf_state)
+                    wf_def[0].updateRoleMappingsFor(analysis)
+                    analysis.reindexObject(idxs=['allowedRolesAndUsers', 'review_state'])
+                    lastsubmitted = analysis
+
+            # Needs the worksheet and AR to be transitioned?
+            if lastsubmitted:
+                AfterTransition(lastsubmitted, 'verify')
+
         else:
             # default bika_listing.py/WorkflowAction for other transitions
             WorkflowAction.__call__(self)
-
 
 def getAnalystName(context):
     """ Returns the name of the currently assigned analyst

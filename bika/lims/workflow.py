@@ -39,4 +39,5 @@ def doActionFor(instance, action_id):
         try:
             workflow.doActionFor(instance, action_id)
         except WorkflowException:
+            logger.info("Could not do action %s for %s:" % (action_id, instance.Title()))
             pass
