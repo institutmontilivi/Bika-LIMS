@@ -42,86 +42,10 @@ class WorksheetWorkflowAction(WorkflowAction):
         bac = getToolByName(self.context, 'bika_analysis_catalog')
         action, came_from = WorkflowAction._get_form_workflow_action(self)
 
-        # XXX combine data from multiple bika listing tables.
-        item_data = {}
-        if 'item_data' in form:
-            if type(form['item_data']) == list:
-                for i_d in form['item_data']:
-                    for i, d in json.loads(i_d).items():
-                        item_data[i] = d
-            else:
-                item_data = json.loads(form['item_data'])
 
-        if action == 'submit' and self.request.form.has_key("Result"):
-            selected_analyses = WorkflowAction._get_selected_items(self)
-            results = {}
-            hasInterims = {}
-
-            # first save results for entire form
-            for uid, result in self.request.form['Result'][0].items():
-                if uid in selected_analyses:
-                    analysis = selected_analyses[uid]
-                else:
-                    analysis = rc.lookupObject(uid)
-                if not analysis:
-                    # ignore result if analysis object no longer exists
-                    continue
-                if not(getSecurityManager().checkPermission(EditResults, analysis)):
-                    # or changes no longer allowed
-                    continue
-                if not isActive(analysis):
-                    # or it's cancelled
-                    continue
-                results[uid] = result
-                service = analysis.getService()
-                interimFields = item_data[uid]
-                if len(interimFields) > 0:
-                    hasInterims[uid] = True
-                else:
-                    hasInterims[uid] = False
-                unit = service.getUnit()
-                analysis.edit(
-                    Result = result,
-                    InterimFields = interimFields,
-                    Retested = form.has_key('retested') and \
-                               form['retested'].has_key(uid),
-                    Unit = unit and unit or '')
-
-            tosubmit = [an for an in selected_analyses.itervalues() \
-                        if an.UID() in results]
-
-            for analysis in tosubmit:
-                if not hasattr(analysis, 'getDependencies') \
-                    or not analysis.getDependencies():
-                    doActionFor(analysis, 'submit')
-
-            lastsubmitted = None
-            for analysis in tosubmit:
-                if hasattr(analysis, 'getDependencies') \
-                    and analysis.getDependencies():
-
-                    # workaround instead of doActionFor(analysis, 'submit')
-                    wf = getToolByName(analysis, 'portal_workflow')
-                    wf_def = wf.getWorkflowsFor(analysis)
-                    wf_state = {'action':'attach',
-                                'time':DateTime(),
-                                'comments':'',
-                                'review_state':'to_be_verified',
-                                'actor':None}
-                    wf.setStatusOf("bika_analysis_workflow", analysis, wf_state)
-                    wf_def[0].updateRoleMappingsFor(analysis)
-                    analysis.reindexObject(idxs=['allowedRolesAndUsers', 'review_state'])
-                    lastsubmitted = analysis
-
-            # Needs the worksheet and AR to be transitioned?
-            if lastsubmitted:
-                AfterTransition(lastsubmitted, 'attach')
-
-            message = PMF("Changes saved.")
-            self.context.plone_utils.addPortalMessage(message, 'info')
-            self.destination_url = self.request.get_header("referer",
-                                   self.context.absolute_url())
-            self.request.response.redirect(self.destination_url)
+        if action == 'submit':
+            # Submit the form. Saves the results, etc.
+            self.submit()
 
         ## assign
         elif action == 'assign':
@@ -202,6 +126,85 @@ class WorksheetWorkflowAction(WorkflowAction):
         else:
             # default bika_listing.py/WorkflowAction for other transitions
             WorkflowAction.__call__(self)
+
+
+    def submit(self):
+
+        form = self.request.form
+        results = form.get('Result',[{}])[0]
+        retested = form.get('retested',{})
+        selected = WorkflowAction._get_selected_items(self)
+        workflow = getToolByName(self.context, 'portal_workflow')
+        rc = getToolByName(self.context, REFERENCE_CATALOG)
+        sm = getSecurityManager()
+
+
+        # XXX combine data from multiple bika listing tables.
+        item_data = {}
+        if 'item_data' in form:
+            if type(form['item_data']) == list:
+                for i_d in form['item_data']:
+                    for i, d in json.loads(i_d).items():
+                        item_data[i] = d
+            else:
+                item_data = json.loads(form['item_data'])
+
+        tosubmit = []
+        # Iterate for each selected analysis and save its data as needed
+        for uid, analysis in selected.items():
+
+            allow_edit = sm.checkPermission(EditResults, analysis)
+            analysis_active = isActive(analysis)
+
+            # Retested?
+            if uid in retested and allow_edit and analysis_active:
+                analysis.setRetested(retested[uid])
+
+            # Need to save results?
+            if uid in results and results[uid] and allow_edit \
+                and analysis_active:
+                interims = item_data.get(uid, [])
+                analysis.setInterimFields(interims)
+                analysis.setResult(results[uid])
+                analysis.reindexObject()
+
+                # Dependences should be sorted first for submission
+                self._fill_dependencies_hierarchy(analysis, tosubmit, list(selected))
+
+        # Submit the analyses
+        for analysis in tosubmit:
+            can_submit = True
+            deps = analysis.getDependencies() \
+                    if hasattr(analysis, 'getDependencies') else []
+            for dependency in deps:
+                if workflow.getInfoFor(dependency, 'review_state') in \
+                    ('to_be_sampled', 'to_be_preserved',
+                     'sample_due', 'sample_received'):
+                    can_submit = False
+                    break
+            if can_submit:
+                doActionFor(analysis, 'submit')
+
+        message = PMF("Changes saved.")
+        self.context.plone_utils.addPortalMessage(message, 'info')
+        self.destination_url = self.request.get_header("referer",
+                               self.context.absolute_url())
+        self.request.response.redirect(self.destination_url)
+
+    def _fill_dependencies_hierarchy(self, analysis, hierarchy=[], uidfilter=[]):
+        uid = analysis.UID()
+        uids = [it.UID() for it in hierarchy]
+        if uid not in uids and uid in uidfilter:
+            deps = analysis.getDependencies() \
+                if hasattr(analysis, 'getDependencies') else []
+
+            for dependency in deps:
+                self._fill_dependencies_hierarchy(dependency, hierarchy, uidfilter)
+
+            uids = [it.UID() for it in hierarchy]
+            if uid not in uids:
+                hierarchy.append(analysis)
+
 
 def getAnalystName(context):
     """ Returns the name of the currently assigned analyst

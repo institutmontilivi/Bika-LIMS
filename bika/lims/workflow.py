@@ -38,6 +38,6 @@ def doActionFor(instance, action_id):
     if not skip(instance, action_id, peek=True):
         try:
             workflow.doActionFor(instance, action_id)
-        except WorkflowException:
-            logger.info("Could not do action %s for %s:" % (action_id, instance.Title()))
+        except WorkflowException, e:
+            logger.info("Could not do action %s for %s: %s" % (action_id, instance.Title(), str(e)))
             pass

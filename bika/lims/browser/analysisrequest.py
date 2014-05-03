@@ -255,103 +255,9 @@ class AnalysisRequestWorkflowAction(WorkflowAction):
             WorkflowAction.__call__(self)
 
         ## submit
-        elif action == 'submit' and self.request.form.has_key("Result"):
-            if not isActive(self.context):
-                message = self.context.translate(_('Item is inactive.'))
-                self.context.plone_utils.addPortalMessage(message, 'info')
-                self.request.response.redirect(self.context.absolute_url())
-                return
-
-            selected_analyses = WorkflowAction._get_selected_items(self)
-            results = {}
-            hasInterims = {}
-
-            # check that the form values match the database
-            # save them if not.
-            for uid, result in self.request.form['Result'][0].items():
-                # if the AR has ReportDryMatter set, get dry_result from form.
-                dry_result = ''
-                if hasattr(self.context, 'getReportDryMatter') \
-                   and self.context.getReportDryMatter():
-                    for k, v in self.request.form['ResultDM'][0].items():
-                        if uid == k:
-                            dry_result = v
-                            break
-                if uid in selected_analyses:
-                    analysis = selected_analyses[uid]
-                else:
-                    analysis = rc.lookupObject(uid)
-                if not analysis:
-                    # ignore result if analysis object no longer exists
-                    continue
-                # Shouldn't happen - better have an actual error
-                # if not checkPermission(EditResults, analysis) \
-                #    and not checkPermission(EditFieldResults, analysis):
-                #     mtool = getToolByName(self.context, 'portal_membership')
-                #     username = mtool.getAuthenticatedMember().getUserName()
-                #     path = "/".join(self.context.getPhysicalPath())
-                #     logger.info("Changes no longer allowed (user: %s, object: %s)" % \
-                #                 (username, path))
-                #     continue
-                results[uid] = result
-                service = analysis.getService()
-                interimFields = item_data[uid]
-                if len(interimFields) > 0:
-                    hasInterims[uid] = True
-                else:
-                    hasInterims[uid] = False
-                service_unit = service.getUnit() and service.getUnit() or ''
-                retested = form.has_key('retested') and form['retested'].has_key(uid)
-                remarks = form.get('Remarks', [{},])[0].get(uid, '')
-                # Don't save uneccessary things
-                if analysis.getInterimFields() != interimFields or \
-                   analysis.getRetested() != retested or \
-                   analysis.getRemarks() != remarks:
-                    analysis.edit(
-                        InterimFields = interimFields,
-                        Retested = retested,
-                        Remarks = remarks)
-                # save results separately, otherwise capture date is rewritten
-                if analysis.getResult() != result or \
-                   analysis.getResultDM() != dry_result:
-                    analysis.edit(
-                        ResultDM = dry_result,
-                        Result = result)
-
-            # discover which items may be submitted
-            # guard_submit does a lot of the same stuff, too.
-            submissable = []
-            for uid, analysis in selected_analyses.items():
-                if uid not in results or not results[uid]:
-                    continue
-                can_submit = True
-                for dependency in analysis.getDependencies():
-                    dep_state = workflow.getInfoFor(dependency, 'review_state')
-                    if hasInterims[uid]:
-                        if dep_state in ('to_be_sampled', 'to_be_preserved',
-                                         'sample_due', 'sample_received',
-                                         'attachment_due', 'to_be_verified',):
-                            can_submit = False
-                            break
-                    else:
-                        if dep_state in ('to_be_sampled', 'to_be_preserved',
-                                         'sample_due', 'sample_received',):
-                            can_submit = False
-                            break
-                if can_submit and analysis not in submissable:
-                    submissable.append(analysis)
-
-            # and then submit them.
-            for analysis in submissable:
-                doActionFor(analysis, 'submit')
-
-            message = self.context.translate(PMF("Changes saved."))
-            self.context.plone_utils.addPortalMessage(message, 'info')
-            if checkPermission(EditResults, self.context):
-                self.destination_url = self.context.absolute_url() + "/manage_results"
-            else:
-                self.destination_url = self.context.absolute_url()
-            self.request.response.redirect(self.destination_url)
+        elif action == 'submit':
+            # Submit the form. Saves the results, etc.
+            self.submit()
 
         ## publish
         elif action in ('prepublish', 'publish', 'republish'):
@@ -386,6 +292,83 @@ class AnalysisRequestWorkflowAction(WorkflowAction):
         else:
             # default bika_listing.py/WorkflowAction for other transitions
             WorkflowAction.__call__(self)
+
+    def submit(self):
+
+        form = self.request.form
+        results = form.get('Result',[{}])[0]
+        retested = form.get('retested',{})
+        selected = WorkflowAction._get_selected_items(self)
+        workflow = getToolByName(self.context, 'portal_workflow')
+        rc = getToolByName(self.context, REFERENCE_CATALOG)
+        sm = getSecurityManager()
+
+
+        # XXX combine data from multiple bika listing tables.
+        item_data = {}
+        if 'item_data' in form:
+            if type(form['item_data']) == list:
+                for i_d in form['item_data']:
+                    for i, d in json.loads(i_d).items():
+                        item_data[i] = d
+            else:
+                item_data = json.loads(form['item_data'])
+
+        tosubmit = []
+        # Iterate for each selected analysis and save its data as needed
+        for uid, analysis in selected.items():
+
+            allow_edit = sm.checkPermission(EditResults, analysis)
+            analysis_active = isActive(analysis)
+
+            # Retested?
+            if uid in retested and allow_edit and analysis_active:
+                analysis.setRetested(retested[uid])
+
+            # Need to save results?
+            if uid in results and results[uid] and allow_edit \
+                and analysis_active:
+                interims = item_data.get(uid, [])
+                analysis.setInterimFields(interims)
+                analysis.setResult(results[uid])
+                analysis.reindexObject()
+
+                # Dependences should be sorted first for submission
+                self._fill_dependencies_hierarchy(analysis, tosubmit, list(selected))
+
+        # Submit the analyses
+        for analysis in tosubmit:
+            can_submit = True
+            deps = analysis.getDependencies() \
+                    if hasattr(analysis, 'getDependencies') else []
+            for dependency in deps:
+                if workflow.getInfoFor(dependency, 'review_state') in \
+                    ('to_be_sampled', 'to_be_preserved',
+                     'sample_due', 'sample_received'):
+                    can_submit = False
+                    break
+            if can_submit:
+                doActionFor(analysis, 'submit')
+
+        message = PMF("Changes saved.")
+        self.context.plone_utils.addPortalMessage(message, 'info')
+        self.destination_url = self.request.get_header("referer",
+                               self.context.absolute_url())
+        self.request.response.redirect(self.destination_url)
+
+    def _fill_dependencies_hierarchy(self, analysis, hierarchy=[], uidfilter=[]):
+        uid = analysis.UID()
+        uids = [it.UID() for it in hierarchy]
+        if uid not in uids and uid in uidfilter:
+            deps = analysis.getDependencies() \
+                if hasattr(analysis, 'getDependencies') else []
+
+            for dependency in deps:
+                self._fill_dependencies_hierarchy(dependency, hierarchy, uidfilter)
+
+            uids = [it.UID() for it in hierarchy]
+            if uid not in uids:
+                hierarchy.append(analysis)
 
 class AnalysisRequestViewView(BrowserView):
     """ AR View form

@@ -16,23 +16,12 @@ if workflow.getInfoFor(context, 'cancellation_state', 'active') == "cancelled":
 
 if context.portal_type == "Analysis":
     dependencies = context.getDependencies()
-    if dependencies:
-        interim_fields = False
-        service = context.getService()
-        calculation = service.getCalculation()
-        if calculation:
-            interim_fields = calculation.getInterimFields()
-        for dep in dependencies:
-            review_state = workflow.getInfoFor(dep, 'review_state')
-            if interim_fields:
-                if review_state in ('to_be_sampled', 'to_be_preserved',
-                                    'sample_due', 'sample_received',
-                                    'attachment_due', 'to_be_verified',):
-                    return False
-            else:
-                if review_state in ('to_be_sampled', 'to_be_preserved',
-                                    'sample_due', 'sample_received',):
-                    return False
+    for dep in dependencies:
+        review_state = workflow.getInfoFor(dep, 'review_state')
+        if review_state in ('to_be_sampled', 'to_be_preserved',
+                                'sample_due', 'sample_received',):
+            return False
+
     # State checking
     # If our state is Sample Due, then we permit Submit transition only
     # if the PointOfCapture is 'field'
@@ -54,7 +43,6 @@ if context.portal_type == "AnalysisRequest":
     return has_analyses
 
 if context.portal_type == "Worksheet":
-
     if not context.getAnalyst():
         return False
 

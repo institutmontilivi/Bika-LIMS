@@ -136,6 +136,11 @@ def AfterTransition(instance, action_id):
         # And   it's attachments are OK
         # And   all it's dependencies are at least 'to_be_verified'
         # Then: 'attach' it.:
+        ''' Now, the analysis gets sorted before doing the submit. First
+            analysis to submit will be those without dependencies and
+            the latest will be those with dependencies submitted
+            previously. See worksheet.py's _fill_dependencies_hierarchy
+            method
         dependents = instance.getDependents()
         for dependent in dependents:
             if not skip(dependent, 'attach', peek=True):
@@ -157,6 +162,7 @@ def AfterTransition(instance, action_id):
                             break
                 if can_attach:
                     doActionFor(dependent, 'attach')
+        '''
 
         # If all analyses in this AR have been attached
         # escalate the action to the parent AR

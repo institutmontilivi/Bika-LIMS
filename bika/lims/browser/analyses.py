@@ -94,6 +94,20 @@ class AnalysesView(BikaListingView):
                                            show_categories=True,
                                            expand_all_categories = True)
 
+    def _fill_dependencies_hierarchy(self, analysis, hierarchy=[]):
+        uid = analysis.UID()
+        uids = [it.UID() for it in hierarchy]
+        if uid not in uids:
+            deps = analysis.getDependencies() \
+                if hasattr(analysis, 'getDependencies') else []
+
+            for dependency in deps:
+                self._fill_dependencies_hierarchy(dependency, hierarchy)
+
+            uids = [it.UID() for it in hierarchy]
+            if uid not in uids:
+                hierarchy.append(analysis)
+
     def folderitems(self):
         rc = getToolByName(self.context, REFERENCE_CATALOG)
         bsc = getToolByName(self.context, 'bika_setup_catalog')
@@ -111,6 +125,17 @@ class AnalysesView(BikaListingView):
         context_active = isActive(self.context)
 
         items = super(AnalysesView, self).folderitems(full_objects = True)
+
+        # sort the items according to its dependencies
+        hierarchy = []
+        outitems = []
+        for i, item in enumerate(items):
+            self._fill_dependencies_hierarchy(item['obj'], hierarchy)
+        for an in hierarchy:
+            for item in items:
+                if item['obj'].UID() == an.UID():
+                    outitems.append(item)
+        items = outitems;
 
         self.interim_fields = {}
         self.interim_columns = {}
@@ -370,7 +395,7 @@ class AnalysesView(BikaListingView):
                            mapping={'worksheet_id':ws.id})))
 
             # Si es tracta d'un resultat amb calcul, per ordenar-lo després
-            items[i]['last'] = 1 if calculation and calculation.getDependentServices() else 0
+            #items[i]['last'] = 1 if calculation and calculation.getDependentServices() else 0
 
         # the TAL requires values for all interim fields on all
         # items, so we set blank values in unused cells
@@ -445,7 +470,7 @@ class AnalysesView(BikaListingView):
         # depèn del resultats d'altres anàlisis, apareguin els resultats
         # ordenats, de manera que el resultat final aparegui després de
         # la resta d'anàlisis
-        items = sorted(items, key=lambda item:item['last'])
+        #items = sorted(items, key=lambda item:item['last'])
 
         self.json_specs = json.dumps(self.specs)
         self.json_interim_fields = json.dumps(self.interim_fields)
