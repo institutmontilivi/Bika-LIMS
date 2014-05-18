@@ -15,9 +15,7 @@ class ajaxGetDependents(BrowserView):
         analysis = uc(UID=self.request.get("uid", '0'))
         if analysis and len(analysis) == 1:
             analysis = analysis[0].getObject()
-            ans = analysis.getDependents()
-            dependents = [an.UID() for an in ans]
+            if analysis.portal_type == "Analysis":
+                ans = analysis.getDependents()
+                dependents = [an.UID() for an in ans]
         return json.dumps(dependents)
-        
-
-

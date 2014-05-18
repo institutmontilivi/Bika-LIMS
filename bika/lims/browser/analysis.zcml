@@ -8,7 +8,7 @@
       for="*"
       name="get_analysis_dependents"
       class="bika.lims.browser.analysis.ajaxGetDependents"
-    permission="zope.Public"
+      permission="zope.Public"
       layer="bika.lims.interfaces.IBikaLIMS"
     />
 

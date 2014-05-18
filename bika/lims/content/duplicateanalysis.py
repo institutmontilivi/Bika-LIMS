@@ -114,7 +114,8 @@ class DuplicateAnalysis(Analysis):
             result = float(str(result))
         except ValueError:
             return True, None
-        dup_variation = float(self.getService().getDuplicateVariation()) or 0
+        dup_variation = self.getService().getDuplicateVariation()
+        dup_variation = float(str(dup_variation)) if dup_variation else 0
         range_min = result - (orig_result * dup_variation / 100)
         range_max = result + (orig_result * dup_variation / 100)
         if range_min <= orig_result <= range_max:
