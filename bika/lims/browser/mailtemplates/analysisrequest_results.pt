@@ -287,7 +287,6 @@
                   tal:condition="service/getUnit|nothing"/>&nbsp;
                 <span tal:condition="analysis_uncertainty"
                       tal:replace="string:[+/- $analysis_uncertainty]  "></span>
-                <span tal:replace="string:[+/- 0.05]  "></span>
               </td>
               <td tal:condition="ar/getReportDryMatter">
                 <span tal:condition="analysis/getResultDM"
