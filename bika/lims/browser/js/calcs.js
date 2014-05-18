@@ -5,7 +5,22 @@ $(document).ready(function(){
     $("input[field='Result']:not(.ajax_calculate), select[field='Result']:not(.ajax_calculate)").live('change', function() {
         if ($(this).closest('tr[puid]').length > 0) {
             var puid = $(this).closest('tr[puid]').attr('puid');
-            $('tr[puid="'+puid+'"] .ajax_calculate').last().change();
+            var suid = $(this).closest('tr[uid]').attr('uid');
+            var uid = $(this).attr('uid');
+            // Recupera els anàlisis depenents
+            $.ajax({
+                type: 'POST',
+                url: window.portal_url + '/get_analysis_dependents',
+                data: {
+                    '_authenticator': $('input[name="_authenticator"]').val(),
+                    'uid': uid},
+                dataType: "json",
+                success: function(data, textStatus, $XHR){
+                    $.each(data, function(index, value){
+                        $('tr[uid="'+value+'"] .ajax_calculate').change();
+                    });
+                }
+            });
         }
     });
 
