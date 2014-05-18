@@ -371,7 +371,7 @@ class WorksheetAnalysesView(AnalysesView):
             pos_text = "<table class='worksheet-position' width='100%%' cellpadding='0' cellspacing='0' style='padding-bottom:5px;'><tr>" + \
                        "<td class='pos' rowspan='3'>%s</td>" % pos
             pos_text += "<td class='pos_top'><a href='%s'>%s</a></td>" % \
-                (client.absolute_url(), client.Title())
+                (client.absolute_url(), to_unicode(client.Title()))
             pos_text += "<td class='pos_top_icons' rowspan='3'>"
             if obj.portal_type == 'DuplicateAnalysis':
                 pos_text += "<img title='%s' src='%s/++resource++bika.lims.images/duplicate.png'/>" % (_("Duplicate"), self.context.absolute_url())
@@ -400,11 +400,11 @@ class WorksheetAnalysesView(AnalysesView):
             # sampletype
             pos_text += "<tr><td>"
             if obj.portal_type == 'Analysis':
-                pos_text += obj.aq_parent.getSample().getSampleType().Title()
+                pos_text += to_unicode(obj.aq_parent.getSample().getSampleType().Title())
             elif obj.portal_type == 'ReferenceAnalysis':
                 pos_text += "" #obj.aq_parent.getReferenceDefinition().Title()
             elif obj.portal_type == 'DuplicateAnalysis':
-                pos_text += obj.getAnalysis().aq_parent.getSample().getSampleType().Title()
+                pos_text += to_unicode(obj.getAnalysis().aq_parent.getSample().getSampleType().Title())
             pos_text += "</td></tr>"
 
             # samplingdeviation
