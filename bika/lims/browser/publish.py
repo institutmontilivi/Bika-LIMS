@@ -215,6 +215,74 @@ class doPublish(BrowserView):
 
         return result
 
+    def get_spec_object(self, analysis):
+        client_uid = analysis.getClientUID()
+        service = analysis.getService()
+        keyword = service.getKeyword()
+        sampletype = analysis.aq_parent.getSample().getSampleType()
+        sampletype_uid = sampletype and sampletype.UID() or ''
+        bsc = getToolByName(self, 'bika_setup_catalog')
+        proxies = bsc(portal_type = 'AnalysisSpec',
+                      getSampleTypeUID = sampletype_uid)
+        a = [p for p in proxies if p.getClientUID == client_uid]
+        if a:
+            return a[0].getObject()
+
+        lab_uid = analysis.bika_setup.bika_analysisspecs.UID()
+        a = [p for p in proxies if p.getClientUID == lab_uid]
+        if a:
+            return a[0].getObject()
+
+        return None
+
+    def get_spec_title(self, analysis):
+        obj = self.get_spec_object(analysis)
+        if obj:
+            return to_utf8(obj.Title())
+        return ""
+
+    def get_spec_dict(self, analysis):
+        obj = self.get_spec_object(analysis)
+        if obj:
+            rr = obj.getResultsRangeDict()
+            keyword = analysis.getKeyword()
+            if keyword in rr:
+                return rr[keyword]
+        if hasattr(analysis, "specification") and analysis.specification:
+            return analysis.specification
+        return {"max": "", "min": "", "error": ""}
+
+    def ResultOutOfRange(self, analysis):
+        spec = self.get_spec_dict(analysis)
+        result = analysis.getResult()
+        try:
+            result = float(str(result))
+            error_amount = (result / 100) * float(str(spec.get('error', '0')))
+        except:
+            return False
+            
+        if spec.get('min', '') != '':
+            if float(str(spec['min'])) >= (result + error_amount):
+                return True
+
+        if spec.get('max', '') != '':
+            if float(str(spec['max'])) <= (result - error_amount):
+                return True
+        
+        return False
+    
+    def getAnalysisSpecsStr(self, spec):
+        specstr = ''
+        if spec['min'] and spec['max']:
+            specstr = '%s - %s' % (spec['min'], spec['max'])
+        elif spec['min']:
+            specstr = '> %s' % spec['min']
+        elif spec['max']:
+            specstr = '< %s' % spec['max']
+
+        if spec['error'] and spec['error'] != '0' and (spec['min'] or spec['max']):
+            specstr += ("  (+/-"+spec['error']+"%)")
+        return specstr
 
     def escape(self, html):
         entities = {

@@ -58,7 +58,16 @@
     		border-left:none;    
     		border-top:1px solid #DCDCDC;
     		width:40%;		
-    	} 
+    	}
+        table.results-table tbody tr td.specs  {
+            border-right:none;
+        }
+        table.results-table tbody tr td.outofrange  {
+            border-left:none;
+            width:30px;
+            font-weight:bold;
+            color:#a00000;
+        }
     	div.discreeter {
     		font-size:0.9em;    
     		border:1px solid #CDCDCD;
@@ -236,6 +245,7 @@
           <tal:notdrymatter tal:condition="not:ar/getReportDryMatter">
             <th i18n:translate="">Result</th>
           </tal:notdrymatter>
+          <th i18n:translate="" colspan="2">Specifications</th>
         </tal:results>
       </tr>
 
@@ -243,61 +253,61 @@
       <tr>
         <th style="white-space:nowrap;" class="service-title">
           <span tal:content="service/Title">Alcohol</span>
-          <em tal:content="service/getUnit|nothing">ml</em>
           <img tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/dry_grey.png"
             tal:condition="python:view.any_drymatter and service.getReportDryMatter()">
           <img tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/accredited.png"
             tal:condition="python:accredited and service.getAccredited()">
         </th>
         <tal:ars repeat="ar view/batch">
-          <div tal:define="
-            service_id service/getId;
-            keyword python:service.getKeyword();
-            analysis_found python:keyword in ar;
-            analysis python:analysis_found and ar[keyword];
-            result analysis/getResult|nothing;
-            precision python:analysis.getService().getPrecision();
-            result python:view.getResult(analysis);
-            uncertainty analysis/getUncertainty|nothing">
+            <tal:cont tal:define="
+                service_id service/getId;
+                keyword python:service.getKeyword();
+                analysis_found python:keyword in ar;
+                analysis python:analysis_found and ar[keyword];">
             <tal:result
               tal:condition="analysis_found"
               tal:define="
+                result python:analysis.getFormattedResult();
+                precision python:analysis.getService().getPrecision();
+                result python:view.getResult(analysis);
+                uncertainty analysis/getUncertainty|nothing;
                 in_range python:analysis.result_in_range(None, 'client');
                 result_class python:'' if in_range[0] else 'out_of_range';
-                global out_of_range python:1 if not in_range[0] else out_of_range;">
+                global out_of_range python:1 if not in_range[0] else out_of_range;
+                analysis_uncertainty analysis/getUncertainty|nothing;
+                analysis_retested python:analysis.getRetested();
+                spec python:view.get_spec_dict(analysis);
+                analysis_range python: view.getAnalysisSpecsStr(spec) or '';
+                analysis_outofrange python:view.ResultOutOfRange(analysis);">
 
               <td nowrap
                 tal:attributes="class result_class">
-                <span tal:content="result">10.00</span>
-                <span tal:content="string:${analysis/Unit}"
-                  tal:condition="analysis/Unit|nothing"/>
-                <span tal:content="string:[+/- $uncertainty]"
-                  tal:condition="uncertainty"/>
-                <div class="retested"
-                  tal:condition="analysis/getRetested"
-                  i18n:translate="">Retested</div>
-                <span tal:condition="python:not in_range[0]">
-                  <img tal:condition="python:not in_range[0]"
-                    tal:attributes="src string:${portal/absolute_url}/++resource++bika.lims.images/exclamation.png"/>
-                  <br/>
-                  <span tal:replace="python:in_range[0] and '' or 'valid range min: %(min)s, max: %(max)s'%(in_range[1])"/>
-                </span>
+                <span tal:content="result">10.00</span>&nbsp;
+                <span tal:content="service/getUnit|nothing"
+                  tal:condition="service/getUnit|nothing"/>&nbsp;
+                <span tal:condition="analysis_uncertainty"
+                      tal:replace="string:[+/- $analysis_uncertainty]  "></span>
+                <span tal:replace="string:[+/- 0.05]  "></span>
               </td>
               <td tal:condition="ar/getReportDryMatter">
                 <span tal:condition="analysis/getResultDM"
                   tal:content="analysis/getResultDM">10</span>
               </td>
-              <tal:remarks tal:condition="python:view.context.bika_setup.getEnableAnalysisRemarks()">
-                <td tal:attributes="colspan python:ar.getReportDryMatter() and '2'or '1'"
-                  tal:content="analysis/getRemarks">
-                </td>
-              </tal:remarks>
+              <td class='specs'>
+                <span tal:replace="python:'(RT)  ' if analysis_retested else ''"></span>
+                <span tal:replace="python:analysis_range"></span>
+              </td>
+              <td class='outofrange'>
+                <span tal:condition="analysis_outofrange"
+                      tal:replace="python:'*' if analysis_outofrange else ''"></span>
+              </td>
             </tal:result>
             <tal:notanalysis tal:condition="python:not analysis_found">
               <td></td>
               <td tal:condition="ar/getReportDryMatter"></td>
+              <td colspan="2"></td>
             </tal:notanalysis>
-          </div>
+            </tal:cont>
         </tal:ars>
       </tr>
     </tal:service>

@@ -300,4 +300,33 @@ class Analysis(BaseContent):
             return True, None
         return False, spec[keyword]
 
+    def getFormattedResult(self):
+        """Formatted result:
+        1. Print ResultText of matching ResultOptions
+        2. If the result is not floatable, return it without being formatted
+        3. If the analysis specs has hidemin or hidemax enabled and the
+           result is out of range, render result as '<min' or '>max'
+        4. If the result is floatable, render it to the correct precision
+        """
+        result = self.getResult()
+        service = self.getService()
+        choices = service.getResultOptions()
+
+        # 1. Print ResultText of mathching ResulOptions
+        match = [x['ResultText'] for x in choices
+                 if str(x['ResultValue']) == str(result)]
+        if match:
+            return match[0]
+
+        # 2. If the result is not floatable, return it without being formatted
+        try:
+            result = float(result)
+        except:
+            return result
+
+        precision = service.getPrecision()
+        if not precision:
+            precision = ''
+        return str("%%.%sf" % precision) % result
+
 atapi.registerType(Analysis, PROJECTNAME)
