@@ -224,9 +224,9 @@ class doPublish(BrowserView):
         bsc = getToolByName(self, 'bika_setup_catalog')
         proxies = bsc(portal_type = 'AnalysisSpec',
                       getSampleTypeUID = sampletype_uid)
-        a = [p for p in proxies if p.getClientUID == client_uid]
-        if a:
-            return a[0].getObject()
+        #a = [p for p in proxies if p.getClientUID == client_uid]
+        #if a:
+        #    return a[0].getObject()
 
         lab_uid = analysis.bika_setup.bika_analysisspecs.UID()
         a = [p for p in proxies if p.getClientUID == lab_uid]
@@ -260,7 +260,7 @@ class doPublish(BrowserView):
             error_amount = (result / 100) * float(str(spec.get('error', '0')))
         except:
             return False
-            
+
         if spec.get('min', '') != '':
             if float(str(spec['min'])) >= (result + error_amount):
                 return True
@@ -268,9 +268,9 @@ class doPublish(BrowserView):
         if spec.get('max', '') != '':
             if float(str(spec['max'])) <= (result - error_amount):
                 return True
-        
+
         return False
-    
+
     def getAnalysisSpecsStr(self, spec):
         specstr = ''
         if spec['min'] and spec['max']:
