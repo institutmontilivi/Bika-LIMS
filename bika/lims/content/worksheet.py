@@ -90,6 +90,24 @@ class Worksheet(BaseFolder, HistoryAwareMixin):
         # contentsMethod methods.  We ignore it.
         return list(self.getAnalyses())
 
+    def getSortedAnalyses(self):
+        # Sort the Analyses list by dependences
+        sortedans = []
+        uids = []
+        for analysis in self.getAnalyses():
+            self._getSortedDependentAnalyses(analysis, sortedans, uids)
+        return sortedans
+
+    def _getSortedDependentAnalyses(self, analysis, catcher=[], uids=[]):
+        if analysis.UID() in uids:
+            return
+        uids.append(analysis.UID())
+
+        for dept in analysis.getDependents():
+            self._getSortedDependentAnalyses(dept, catcher, uids)
+
+        catcher.append(analysis)
+
     security.declareProtected(EditWorksheet, 'addAnalysis')
     def addAnalysis(self, analysis, position = None):
         """- add the analysis to self.Analyses().
