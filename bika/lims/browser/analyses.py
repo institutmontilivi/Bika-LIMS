@@ -298,8 +298,7 @@ class AnalysesView(BikaListingView):
                                               if str(r['ResultValue']) == str(result)][0]
                     else:
                         try:
-                            items[i]['formatted_result'] = precision and \
-                                str("%%.%sf" % precision) % float(result) or result
+                            items[i]['formatted_result'] = str("%%.%sf" % precision) % float(result) or result
                         except:
                             items[i]['formatted_result'] = result
                             indet = self.context.translate(_('Indet'))
