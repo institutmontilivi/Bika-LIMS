@@ -8,8 +8,25 @@ from bika.lims.subscribers import skip
 from bika.lims.subscribers import doActionFor
 import transaction
 
-def AfterTransitionEventHandler(instance, event):
+def BeforeTransitionEventHandler(instance, event):
+    # Check If all the analysis are "to_be_verified"
+    # Creation doesn't have a 'transition'
+    if not event.transition:
+        return
 
+    action_id = event.transition.id
+
+    workflow = getToolByName(instance, 'portal_workflow')
+
+    if action_id == "verify":
+        instance.reindexObject(idxs = ["review_state", ])
+        analyses = instance.getAnalyses()
+        for analysis in analyses:
+            if workflow.getInfoFor(analysis, 'review_state', '') != 'to_be_verified':
+                return False
+    return
+
+def AfterTransitionEventHandler(instance, event):
     # creation doesn't have a 'transition'
     if not event.transition:
         return
@@ -55,12 +72,16 @@ def AfterTransitionEventHandler(instance, event):
 
     elif action_id == "verify":
         instance.reindexObject(idxs = ["review_state", ])
+
         if not "verify all analyses" in instance.REQUEST['workflow_skiplist']:
             # verify all analyses in this instance.
-            analyses = instance.getAnalyses()
+            analyses = instance.getSortedAnalyses()
             for analysis in analyses:
                 if workflow.getInfoFor(analysis, 'review_state', '') != 'to_be_verified':
                     continue
+
                 doActionFor(analysis, "verify")
+            if "verify all analyses" in instance.REQUEST['workflow_skiplist']:
+                instance.REQUEST['workflow_skiplist'].remove("verify all analyses")
 
     return
