@@ -65,6 +65,7 @@
         table.results-table tbody tr td.outofrange  {
             border-left:none;
             width:30px;
+            font-size:5em;
             font-weight:bold;
             color:#a00000;
         }
