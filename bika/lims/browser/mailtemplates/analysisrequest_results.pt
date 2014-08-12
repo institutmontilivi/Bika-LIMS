@@ -107,7 +107,8 @@
 			 style='display:block;'>
 			 <div tal:define="barcode_str ar/getRequestID">
 				 <div class='barcode'>
-				 	<div tal:content="ar/getRequestID"></div>
+					   <a tal:attributes="href ar/absolute_url"
+					      tal:content="ar/getRequestID"/>
 				 </div>
 			</div>
 		</div>  
