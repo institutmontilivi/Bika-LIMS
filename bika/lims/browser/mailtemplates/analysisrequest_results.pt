@@ -83,6 +83,9 @@
     		border:none;
     		padding-left:20px;
     	}
+	div.discreeter p {
+	font-size:0.85em;
+	}
     </style>
 </head>
 
@@ -381,7 +384,8 @@
   </tal:ar>
 </table>
 
-<div tal:repeat="manager mngr_ids"
+<div class="bottom"
+  tal:repeat="manager mngr_ids"
   tal:define="mngr_info python:view.get_managers_from_requests();
     mngr_ids python:mngr_info['ids'];
     managers python:mngr_info['dict']">
