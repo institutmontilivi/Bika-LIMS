@@ -263,9 +263,9 @@
                 service_id service/getId;
                 keyword python:service.getKeyword();
                 analysis_found python:keyword in ar;
-                analysis python:analysis_found and ar[keyword];">
+		analysis python:ar.get(keyword,None);"
+		tal:condition="python:keyword in ar">
             <tal:result
-              tal:condition="analysis_found"
               tal:define="
                 result python:analysis.getFormattedResult();
                 precision python:analysis.getService().getPrecision();
