@@ -15,7 +15,7 @@
           tal:attributes="href string:$portal_url/analysisrequest_results.css" />
     <style>
     	html body {
-    		font-size:12px;
+    		font-size:10px;
     	}
     	table.main-table thead tr th,
     	table.main-table tbody tr.category_heading th  {
