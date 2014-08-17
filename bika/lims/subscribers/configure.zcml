@@ -60,6 +60,13 @@
       handler="bika.lims.subscribers.analysisrequest.AfterTransitionEventHandler"
     />
 
+    <!-- Workflow action event to check "verified"  Worksheet objects -->
+    <subscriber
+      for="bika.lims.interfaces.IWorksheet
+           Products.DCWorkflow.interfaces.IBeforeTransitionEvent"
+      handler="bika.lims.subscribers.worksheet.BeforeTransitionEventHandler"
+    />
+
     <!-- Workflow action event for Worksheet objects -->
     <subscriber
       for="bika.lims.interfaces.IWorksheet
