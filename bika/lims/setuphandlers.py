@@ -338,6 +338,14 @@ class BikaGenerator:
         mp('Access contents information', ['Manager', 'Member', 'Authenticated', 'Anonymous'], 1)
         portal.methods.reindexObject()
 
+        # /attachment folder permissions
+        mp = portal.bika_setup.attachments.manage_permission
+        mp(permissions.AddPortalContent, ['Manager', 'LabManager', 'Analyst'], 0)
+        mp(permissions.DeleteObjects, ['Manager', 'LabManager', 'Analyst'], 0)
+        mp(permissions.View, ['Manager', 'Member', 'Authenticated', 'Anonymous','Analyst'], 1)
+        mp('Access contents information', ['Manager', 'Member', 'Authenticated', 'Anonymous', 'Analyst'], 1)
+        portal.bika_setup.attachments.reindexObject()
+
 
     def setupVersioning(self, portal):
         portal_repository = getToolByName(portal, 'portal_repository')

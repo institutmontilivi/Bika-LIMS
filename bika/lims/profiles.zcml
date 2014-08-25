@@ -36,4 +36,14 @@
         sortkey="1"
         profile="bika.lims:default"/>
 
+<genericsetup:upgradeStep
+        title="Privileges for analyst to create an atachment"
+        description=""
+        source="1100"
+        destination="1101"
+        handler="bika.lims.upgrade.to1101.upgrade"
+        sortkey="1"
+        profile="bika.lims:default"/>
+
+
 </configure>

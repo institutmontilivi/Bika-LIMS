@@ -8,6 +8,7 @@
              manager_bypass="False">
 
 <permission>BIKA: Add Analysis</permission>
+<permission>BIKA: Add Attachment</permission>
 <permission>BIKA: Edit AR</permission>
 <permission>BIKA: Edit Results</permission>
 <permission>BIKA: Edit Field Results</permission>
@@ -201,6 +202,14 @@
    <permission-role>LabManager</permission-role>
    <permission-role>LabClerk</permission-role>
   </permission-map>
+  <permission-map name="BIKA: Add Attachment" acquired="False">
+   <permission-role>Analyst</permission-role>
+   <permission-role>Manager</permission-role>
+   <permission-role>LabManager</permission-role>
+   <permission-role>LabClerk</permission-role>
+   <permission-role>Sampler</permission-role>
+   <permission-role>Owner</permission-role>
+  </permission-map>
  </state>
 
  <state state_id="attachment_due" title="Attachment Outstanding" i18n:attributes="title">
@@ -236,6 +245,14 @@
    <permission-role>Manager</permission-role>
    <permission-role>LabManager</permission-role>
    <permission-role>LabClerk</permission-role>
+  </permission-map>
+    <permission-map name="BIKA: Add Attachment" acquired="False">
+   <permission-role>Analyst</permission-role>
+   <permission-role>Manager</permission-role>
+   <permission-role>LabManager</permission-role>
+   <permission-role>LabClerk</permission-role>
+   <permission-role>Sampler</permission-role>
+   <permission-role>Owner</permission-role>
   </permission-map>
  </state>
 
@@ -273,6 +290,14 @@
    <permission-role>LabManager</permission-role>
    <permission-role>LabClerk</permission-role>
   </permission-map>
+    <permission-map name="BIKA: Add Attachment" acquired="False">
+   <permission-role>Analyst</permission-role>
+   <permission-role>Manager</permission-role>
+   <permission-role>LabManager</permission-role>
+   <permission-role>LabClerk</permission-role>
+   <permission-role>Sampler</permission-role>
+   <permission-role>Owner</permission-role>
+  </permission-map>
  </state>
 
  <state state_id="verified" title="Verified" i18n:attributes="title">
@@ -293,6 +318,8 @@
   </permission-map>
   <permission-map name="BIKA: Cancel and reinstate" acquired="False">
   </permission-map>
+  <permission-map name="BIKA: Add Attachment" acquired="False">
+  </permission-map>
  </state>
 
  <state state_id="published" title="Published" i18n:attributes="title">
@@ -312,6 +339,8 @@
   <permission-map name="BIKA: Manage Invoices" acquired="True">
   </permission-map>
   <permission-map name="BIKA: Cancel and reinstate" acquired="False">
+  </permission-map>
+  <permission-map name="BIKA: Add Attachment" acquired="False">
   </permission-map>
  </state>
 
@@ -503,6 +532,7 @@
           icon=""
           i18n:translate="attach_transition_title">Add attachment</action>
   <guard>
+   <guard-permission>BIKA: Add Attachment</guard-permission>
    <guard-expression>python:here.guard_attach_transition()</guard-expression>
   </guard>
  </transition>
