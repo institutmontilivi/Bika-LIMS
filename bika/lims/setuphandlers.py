@@ -247,6 +247,7 @@ class BikaGenerator:
         mp(ManageClients, ['Manager', 'LabManager', 'LabClerk', 'Owner'], 0)
         mp(permissions.AddPortalContent, ['Manager', 'LabManager', 'LabClerk', 'Owner'], 0)
         mp(AddAnalysisSpec, ['Manager', 'LabManager', 'Owner'], 0)
+        mp(AddAttachment, ['Manager', 'LabManager', 'Owner' 'Analyst'], 0)
         portal.clients.reindexObject()
 
         # /worksheets folder permissions
@@ -339,12 +340,12 @@ class BikaGenerator:
         portal.methods.reindexObject()
 
         # /attachment folder permissions
-        mp = portal.bika_setup.attachments.manage_permission
-        mp(permissions.AddPortalContent, ['Manager', 'LabManager', 'Analyst'], 0)
-        mp(permissions.DeleteObjects, ['Manager', 'LabManager', 'Analyst'], 0)
-        mp(permissions.View, ['Manager', 'Member', 'Authenticated', 'Anonymous','Analyst'], 1)
-        mp('Access contents information', ['Manager', 'Member', 'Authenticated', 'Anonymous', 'Analyst'], 1)
-        portal.bika_setup.attachments.reindexObject()
+        #mp = portal.bika_setup.attachment.manage_permission
+        #mp(permissions.AddPortalContent, ['Manager', 'LabManager', 'Analyst'], 0)
+        #mp(permissions.DeleteObjects, ['Manager', 'LabManager', 'Analyst'], 0)
+        #mp(permissions.View, ['Manager', 'Member', 'Authenticated', 'Anonymous','Analyst'], 1)
+        #mp('Access contents information', ['Manager', 'Member', 'Authenticated', 'Anonymous', 'Analyst'], 1)
+        #portal.bika_setup.attachment.reindexObject()
 
 
     def setupVersioning(self, portal):
